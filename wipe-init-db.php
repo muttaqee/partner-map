@@ -5,8 +5,8 @@
   Partner Map.
   It is only intended to be used as a one-time setup.
 
-  NOTE: It first removes any database and tables having the same names.
-  Don't execute this without first saving any
+  !!! NOTE: It first removes any database and tables having the same names.
+  Don't execute this without first saving important data!
   */
 
   // Use this to report errors before closing
