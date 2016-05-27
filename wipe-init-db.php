@@ -220,7 +220,7 @@
   }
 
 
-  /* Fill tables */
+  /* Fill ratings and simple ratings tables */
   report("ENTERING ROWS");
 
   $arrayLength = count($ratings);
