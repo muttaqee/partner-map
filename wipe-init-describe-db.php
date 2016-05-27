@@ -245,6 +245,44 @@
     }
   }
 
+  // FIXME: Output isn't pretty - should instead write output as html tables
+  /* Describe tables */
+  report("DESCRIBING TABLES");
+  $arrayLength = count($tables);
+  for ($i = 0; $i < $arrayLength; $i++) {
+    report("TABLE: $tables[$i]");
+    //$query = "DESCRIBE $tables[$i]";
+    $query = "SHOW COLUMNS FROM $tables[$i]";
+    $resource = mysql_query($query, $link);
+
+    $html = "<table border='1'>";
+    while ($row = mysql_fetch_array($resource)) {
+      // smallReport(implode("|", $row));
+      $html .= "<tr>";
+      $rowSize = count($row);
+      for ($j = 0; $j < $rowSize; $j++) {
+        if (!is_null($row[$j])) {
+          $html .= "<td>" . "$row[$j]" . "</td>";
+        }
+      }
+      $html .= "</tr>";
+
+      // FIXME: Attempt to remove odd empty last cell for "consultants"
+      // if (!is_null($row)) {
+      //   $html .= "<tr>";
+      //   $rowSize = count($row);
+      //   for ($j = 0; $j < $rowSize; $j++) {
+      //     if (!is_null($row[$j])) {
+      //       $html .= "<td>" . "$row[$j]" . "</td>";
+      //     }
+      //   }
+      //   $html .= "</tr>";
+      // }
+    }
+    $html .= "</table>";
+    echo $html;
+  }
+
 
   /* End and close server connection */
 
