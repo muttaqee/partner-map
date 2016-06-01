@@ -54,9 +54,9 @@
 
   // Table and column names
   $tables = array(
-    "partners",
     "consultants",
     "contacts",
+    "partners",
     "ratings",
     "ratings_simple"
   );
@@ -90,10 +90,10 @@
   );
 
   $ratings_table = $tables[3];
-  $ratings_cols = array("code");
+  $ratings_cols = array("grade");
 
   $ratings_simple_table = $tables[4];
-  $ratings_simple_cols = array("code");
+  $ratings_simple_cols = array("grade");
 
 
   /* Create tables */
@@ -132,14 +132,14 @@
 
   // Create ratings table
   $query = "CREATE TABLE $ratings_table (
-    code ENUM(
+    grade ENUM(
       'A+', 'A', 'A-',
       'B+', 'B', 'B-',
       'C+', 'C', 'C-',
       'D+', 'D', 'D-',
       'No rating'
     ) NOT NULL,
-    PRIMARY KEY (code)
+    PRIMARY KEY (grade)
   )";
   if (!mysql_query($query, $link)) {
     $error_count++;
@@ -150,10 +150,10 @@
 
   // Create simple ratings table
   $query = "CREATE TABLE $ratings_simple_table (
-    code ENUM(
+    grade ENUM(
       'A', 'B', 'C', 'D', 'No rating'
     ) NOT NULL,
-    PRIMARY KEY (code)
+    PRIMARY KEY (grade)
   )";
   if (!mysql_query($query, $link)) {
     $error_count++;
@@ -192,7 +192,7 @@
     partner_organization_id INT($MAX_ID_LENGTH),
     rejected BIT(1) DEFAULT 0,
     PRIMARY KEY (id),
-    FOREIGN KEY (rating) REFERENCES $ratings_table(code),
+    FOREIGN KEY (rating) REFERENCES $ratings_table(grade),
     FOREIGN KEY (partner_organization_id) REFERENCES $partners_table(id)
   )";
   if (!mysql_query($query, $link)) {

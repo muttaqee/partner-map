@@ -5,7 +5,6 @@ Read data for PARTNER table, pass 1/2:
 - Read rows from "Map" worksheet.
 - Encode rows in JSON.
 - Output rows for use by PHP script.
-
 """
 
 """
