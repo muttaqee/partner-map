@@ -607,7 +607,55 @@
 
   // Populate table: technologies
   function populate_technologies() {
+    $table_name = "technologies";
+    $col1 = "technology_type";
+    $col2 = "technology";
+    $rows = array(
+      // Each row is in the form: "col1 name"=>"value1", "col2 name"=> value2
+      array($col1=>"Hadoop", $col2=>"Data Loader for Hadoop"),
+      array($col1=>"Analytics", $col2=>"Enterprise Miner"),
+      array($col1=>"Analytics", $col2=>"Workbench for SAP HANA"),
+      array($col1=>"Analytics", $col2=>"Text Miner"),
+      array($col1=>"Analytics", $col2=>"Visual Statistics"),
+      array($col1=>"Analytics", $col2=>"Forecast Studio"),
+      array($col1=>"Analytics", $col2=>"OR"),
+      array($col1=>"Analytics", $col2=>"ETS"),
+      array($col1=>"Analytics", $col2=>"Sentiment Analysis"),
+      array($col1=>"Analytics", $col2=>"Decision Manager"),
+      array($col1=>"Analytics", $col2=>"Model Manager"),
+      array($col1=>"Analytics", $col2=>"Business Rules Manager"),
+      array($col1=>"Analytics", $col2=>"Scoring Accelerator"),
+      array($col1=>"Analytics", $col2=>"Analytic Technologies"),
+      array($col1=>"BI", $col2=>"BI Server"),
+      array($col1=>"BI", $col2=>"Enterprise BI Server"),
+      array($col1=>"BI", $col2=>"Visual Analytics"),
+      array($col1=>"BI", $col2=>"BI Technologies"),
+      array($col1=>"DI", $col2=>"Data Management with DI/DM Studio"),
+      array($col1=>"DI", $col2=>"Data Surveyor for SAP"),
+      array($col1=>"DI", $col2=>"Event Stream Processing"),
+      array($col1=>"DI", $col2=>"Federation Server"),
+      array($col1=>"DI", $col2=>"DI Architects"),
+      array($col1=>"DQ", $col2=>"Master Data Management"),
+      array($col1=>"DQ", $col2=>"Data Governance"),
+      array($col1=>"DQ", $col2=>"Data Quality Standard-Advanced / DataFlux"),
+      array($col1=>"Security", $col2=>"Fraud Management"),
+      array($col1=>"Security", $col2=>"AML"),
+      array($col1=>"Security", $col2=>"Enterprise Case Management"),
+      array($col1=>"IPA/GRID", $col2=>"Grid Manager"),
+      array($col1=>"IPA/GRID", $col2=>"SAS HPA"),
+      array($col1=>"IPA/GRID", $col2=>"HPA/Grid")
+    );
+    foreach ($rows as $row) {
+      $size = count($row);
+      $columns = "";
+      $values = "";
+      $i = 0;
+      foreach ($row as $column_name => $value) {
+        $columns
 
+      }
+      $sql = "INSERT INTO $table_name ($columns) VALUES ($values)";
+    }
   }
 
   // Populate table: solutions
