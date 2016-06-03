@@ -129,7 +129,7 @@
   // Field data sizes
   $ID_SIZE = 5;
   $RATING_SIZE = 10; // FIXME: May change to 2 or 1 (for ratings_simple)
-  $NAME_SIZE = 30;
+  $NAME_SIZE = 50;
   $BOOLEAN_SIZE = 1; // Does this script use this for boolean/tinyint?
   $NOTE_SIZE = 500;
   $CURRENCY_SIZE = 15;
@@ -565,11 +565,31 @@
   }
 
   // Helper: inserts single value into a one-column table
-  function populateTable($table_name, $value_array) {
+  function populate1TupleTable($table_name, $value_array) {
     foreach ($value_array as $value) {
       // Construct and submit query
       $sql = "INSERT INTO $table_name VALUES (\"$value\")";
       query($sql, "Populated $table_name table: $sql", false);
+    }
+  }
+
+  // Helper: insert values into a table
+  // $columns: an indexed array of column names
+  // $rows: an indexed array of rows, where each row is an associative array of
+  // column-name=>column-value pairs.
+  function populateTable($table_name, $columns, $rows) {
+    $row_width = count($columns);
+    foreach ($rows as $row) {
+      $cols_string = "";
+      $vals_string = "";
+      for ($i = 0; $i < $row_width-1; $i++) {
+        $cols_string .= $columns[$i] . ",";
+        $vals_string .= "\"" . $row[$columns[$i]] . "\",";
+      }
+      $cols_string .= $columns[$row_width-1];
+      $vals_string .= "\"" . $row[$columns[$row_width-1]] . "\"";
+      $sql = "INSERT INTO $table_name ($cols_string) VALUES ($vals_string)";
+      query($sql, $sql, false);
     }
   }
 
@@ -582,14 +602,14 @@
       "C+", "C", "C-",
       "D+", "D", "D-"
     );
-    populateTable($table_name, $rows);
+    populate1TupleTable($table_name, $rows);
   }
 
   // Populate table: ratings_simple
   function populate_ratings_simple() {
     $table_name = "ratings_simple";
     $rows = array("A", "B", "C", "D");
-    populateTable($table_name, $rows);
+    populate1TupleTable($table_name, $rows);
   }
 
   // Populate table: partner_strengths
@@ -602,65 +622,116 @@
       "Political - SAS/Customer",
       "Social - Responsive"
     );
-    populateTable($table_name, $rows);
+    populate1TupleTable($table_name, $rows);
   }
 
   // Populate table: technologies
   function populate_technologies() {
     $table_name = "technologies";
-    $col1 = "technology_type";
-    $col2 = "technology";
+    $columns = array("technology_type", "technology");
     $rows = array(
-      // Each row is in the form: "col1 name"=>"value1", "col2 name"=> value2
-      array($col1=>"Hadoop", $col2=>"Data Loader for Hadoop"),
-      array($col1=>"Analytics", $col2=>"Enterprise Miner"),
-      array($col1=>"Analytics", $col2=>"Workbench for SAP HANA"),
-      array($col1=>"Analytics", $col2=>"Text Miner"),
-      array($col1=>"Analytics", $col2=>"Visual Statistics"),
-      array($col1=>"Analytics", $col2=>"Forecast Studio"),
-      array($col1=>"Analytics", $col2=>"OR"),
-      array($col1=>"Analytics", $col2=>"ETS"),
-      array($col1=>"Analytics", $col2=>"Sentiment Analysis"),
-      array($col1=>"Analytics", $col2=>"Decision Manager"),
-      array($col1=>"Analytics", $col2=>"Model Manager"),
-      array($col1=>"Analytics", $col2=>"Business Rules Manager"),
-      array($col1=>"Analytics", $col2=>"Scoring Accelerator"),
-      array($col1=>"Analytics", $col2=>"Analytic Technologies"),
-      array($col1=>"BI", $col2=>"BI Server"),
-      array($col1=>"BI", $col2=>"Enterprise BI Server"),
-      array($col1=>"BI", $col2=>"Visual Analytics"),
-      array($col1=>"BI", $col2=>"BI Technologies"),
-      array($col1=>"DI", $col2=>"Data Management with DI/DM Studio"),
-      array($col1=>"DI", $col2=>"Data Surveyor for SAP"),
-      array($col1=>"DI", $col2=>"Event Stream Processing"),
-      array($col1=>"DI", $col2=>"Federation Server"),
-      array($col1=>"DI", $col2=>"DI Architects"),
-      array($col1=>"DQ", $col2=>"Master Data Management"),
-      array($col1=>"DQ", $col2=>"Data Governance"),
-      array($col1=>"DQ", $col2=>"Data Quality Standard-Advanced / DataFlux"),
-      array($col1=>"Security", $col2=>"Fraud Management"),
-      array($col1=>"Security", $col2=>"AML"),
-      array($col1=>"Security", $col2=>"Enterprise Case Management"),
-      array($col1=>"IPA/GRID", $col2=>"Grid Manager"),
-      array($col1=>"IPA/GRID", $col2=>"SAS HPA"),
-      array($col1=>"IPA/GRID", $col2=>"HPA/Grid")
-    );
-    foreach ($rows as $row) {
-      $size = count($row);
-      $columns = "";
-      $values = "";
-      $i = 0;
-      foreach ($row as $column_name => $value) {
-        $columns
+      // Each row is in the form:
+      // col1 name => value1, col2 name => value2, ...
+      array($columns[0]=>"Hadoop", $columns[1]=>"Data Loader for Hadoop"),
 
-      }
-      $sql = "INSERT INTO $table_name ($columns) VALUES ($values)";
-    }
+      array($columns[0]=>"Analytics", $columns[1]=>"Enterprise Miner"),
+      array($columns[0]=>"Analytics", $columns[1]=>"Workbench for SAP HANA"),
+      array($columns[0]=>"Analytics", $columns[1]=>"Text Miner"),
+      array($columns[0]=>"Analytics", $columns[1]=>"Visual Statistics"),
+      array($columns[0]=>"Analytics", $columns[1]=>"Forecast Studio"),
+      array($columns[0]=>"Analytics", $columns[1]=>"OR"),
+      array($columns[0]=>"Analytics", $columns[1]=>"ETS"),
+      array($columns[0]=>"Analytics", $columns[1]=>"Sentiment Analysis"),
+      array($columns[0]=>"Analytics", $columns[1]=>"Decision Manager"),
+      array($columns[0]=>"Analytics", $columns[1]=>"Model Manager"),
+      array($columns[0]=>"Analytics", $columns[1]=>"Business Rules Manager"),
+      array($columns[0]=>"Analytics", $columns[1]=>"Scoring Accelerator"),
+      array($columns[0]=>"Analytics", $columns[1]=>"Analytic Technologies"),
+
+      array($columns[0]=>"BI", $columns[1]=>"BI Server"),
+      array($columns[0]=>"BI", $columns[1]=>"Enterprise BI Server"),
+      array($columns[0]=>"BI", $columns[1]=>"Visual Analytics"),
+      array($columns[0]=>"BI", $columns[1]=>"BI Technologies"),
+
+      array($columns[0]=>"DI", $columns[1]=>"Data Management with DI/DM Studio"),
+      array($columns[0]=>"DI", $columns[1]=>"Data Surveyor for SAP"),
+      array($columns[0]=>"DI", $columns[1]=>"Event Stream Processing"),
+      array($columns[0]=>"DI", $columns[1]=>"Federation Server"),
+      array($columns[0]=>"DI", $columns[1]=>"DI Architects"),
+
+      array($columns[0]=>"DQ", $columns[1]=>"Master Data Management"),
+      array($columns[0]=>"DQ", $columns[1]=>"Data Governance"),
+      array($columns[0]=>"DQ", $columns[1]=>"Data Quality Standard-Advanced / DataFlux"),
+
+      array($columns[0]=>"Security", $columns[1]=>"Fraud Management"),
+      array($columns[0]=>"Security", $columns[1]=>"AML"),
+      array($columns[0]=>"Security", $columns[1]=>"Enterprise Case Management"),
+
+      array($columns[0]=>"IPA/GRID", $columns[1]=>"Grid Manager"),
+      array($columns[0]=>"IPA/GRID", $columns[1]=>"SAS HPA"),
+      array($columns[0]=>"IPA/GRID", $columns[1]=>"HPA/Grid")
+    );
+    populateTable($table_name, $columns, $rows);
   }
 
   // Populate table: solutions
   function populate_solutions() {
+    $table_name = "solutions";
+    $columns = array("solution_type", "solution");
+    $rows = array(
+      // Each row is in the form:
+      // col1 name => value1, col2 name => value2, ...
+      array($columns[0]=>"CFS", $columns[1]=>"Fraud and Financial Crimes"),
+      array($columns[0]=>"CFS", $columns[1]=>"Anti-Money Laundering"),
+      array($columns[0]=>"CFS", $columns[1]=>"Credit Scoring"),
+      array($columns[0]=>"CFS", $columns[1]=>"Credit Risk Managment"),
+      array($columns[0]=>"CFS", $columns[1]=>"Risk Dimensions / Management"), # FIXME: Does this " / " make sense?
+      array($columns[0]=>"CFS", $columns[1]=>"OpRisk Management"), # FIXME: Rename OpRisk?
+      array($columns[0]=>"CFS", $columns[1]=>"Enterprise GRC"),
+      array($columns[0]=>"CFS", $columns[1]=>"CFS Solutions"),
 
+      array($columns[0]=>"CIS", $columns[1]=>"Marketing Automation"),
+      array($columns[0]=>"CIS", $columns[1]=>"Marketing Optimization"),
+      array($columns[0]=>"CIS", $columns[1]=>"Rel-Time Decision Mgr"), # FIXME: Rename?
+      array($columns[0]=>"CIS", $columns[1]=>"Marketing Operations Management"),
+      array($columns[0]=>"CIS", $columns[1]=>"Realtime Decision Manager"),
+      array($columns[0]=>"CIS", $columns[1]=>"CI Solutions"),
+
+      array($columns[0]=>"PMS", $columns[1]=>"ABM / Profictability Managament"), # FIXME: Rename?
+      array($columns[0]=>"PMS", $columns[1]=>"Strategy Management"),
+      array($columns[0]=>"PMS", $columns[1]=>"Financial Management"),
+      array($columns[0]=>"PMS", $columns[1]=>"Human Capital Management"),
+      array($columns[0]=>"PMS", $columns[1]=>"PM Solutions"),
+
+      array($columns[0]=>"SCS", $columns[1]=>"Collaborative Planning Workbench"),
+      array($columns[0]=>"SCS", $columns[1]=>"Demand Signal Analytics"),
+      array($columns[0]=>"SCS", $columns[1]=>"Forecast Analyst Workbench"),
+      array($columns[0]=>"SCS", $columns[1]=>"New Product Forecasting"),
+      array($columns[0]=>"SCS", $columns[1]=>"Asset Performance Analytics"),
+      array($columns[0]=>"SCS", $columns[1]=>"Field Quality Analytics"),
+      array($columns[0]=>"SCS", $columns[1]=>"Production Quality Analytics"),
+      array($columns[0]=>"SCS", $columns[1]=>"Suspect Claims Detection"),
+      array($columns[0]=>"SCS", $columns[1]=>"Service Parts Optimization"),
+      array($columns[0]=>"SCS", $columns[1]=>"Inventory Optimization"),
+      array($columns[0]=>"SCS", $columns[1]=>"SC Solutions"),
+
+      array($columns[0]=>"HLS", $columns[1]=>"Clinical Data Integration"),
+      array($columns[0]=>"HLS", $columns[1]=>"Drug Development"),
+      array($columns[0]=>"HLS", $columns[1]=>"Healthcare Fraud"),
+      array($columns[0]=>"HLS", $columns[1]=>"Episode Analytics"),
+      array($columns[0]=>"HLS", $columns[1]=>"Safety Analytics"),
+      array($columns[0]=>"HLS", $columns[1]=>"Claims Analytics"),
+      array($columns[0]=>"HLS", $columns[1]=>"Health Life Sci Solutions"), # FIXME: Rename?
+
+      array($columns[0]=>"RTS", $columns[1]=>"Integrated Merchandise Planning"),
+      array($columns[0]=>"RTS", $columns[1]=>"Revenue Optimization"),
+      array($columns[0]=>"RTS", $columns[1]=>"Size/Pack Optimization"),
+      array($columns[0]=>"RTS", $columns[1]=>"Demand-Driven Forecasting"),
+      array($columns[0]=>"RTS", $columns[1]=>"Retail Solutions"),
+
+      array($columns[0]=>"EN", $columns[1]=>"Energy Forecasting")
+    );
+    populateTable($table_name, $columns, $rows);
   }
 
   // Populate table: misc
@@ -674,7 +745,7 @@
       "Certified Installers",
       "Grid Administration"
     );
-    populateTable($table_name, $rows);
+    populate1TupleTable($table_name, $rows);
   }
 
   // Populate table: verticals
@@ -683,7 +754,7 @@
     $rows = array(
       "All", "FS", "COM", "HLS", "FED", "RCCM", "SLG", "EN/MFG", "UTL"
     );
-    populateTable($table_name, $rows);
+    populate1TupleTable($table_name, $rows);
   }
 
   // Populate table: geographical_regions
@@ -692,7 +763,7 @@
     $rows = array(
       "All", "NE", "SE", "MW", "NW", "SW", "Other"
     );
-    populateTable($table_name, $rows);
+    populate1TupleTable($table_name, $rows);
   }
 
   // Populate table: oppourtunity_statuses
@@ -703,7 +774,7 @@
       "Closed",
       "Filled"
     );
-    populateTable($table_name, $rows);
+    populate1TupleTable($table_name, $rows);
   }
 
   // Create all tables
