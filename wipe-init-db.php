@@ -415,13 +415,16 @@
     // Construct query
     global $ID_SIZE;
     global $NAME_SIZE;
+    global $RATING_SIZE;
     global $BOOLEAN_SIZE;
     $sql = "CREATE TABLE $table_name (
       id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
       first_name VARCHAR($NAME_SIZE),
       last_name VARCHAR($NAME_SIZE) NOT NULL,
+      rating VARCHAR($RATING_SIZE), # FIXME: Added 6-6-16. Alter this?
       is_rejected BIT($BOOLEAN_SIZE) NOT NULL,
-      PRIMARY KEY (id)
+      PRIMARY KEY (id),
+      FOREIGN KEY (rating) REFERENCES ratings(grade)
     )";
 
     query($sql, "Created $table_name table", false);
@@ -766,13 +769,22 @@
     populate1TupleTable($table_name, $rows);
   }
 
-  // Populate table: oppourtunity_statuses
+  // Populate table: opportunity_statuses
   function populate_opportunity_statuses() {
     $table_name = "opportunity_statuses";
     $rows = array(
       "Open",
       "Closed",
       "Filled"
+    );
+    populate1TupleTable($table_name, $rows);
+  }
+
+  // Populate table: consultant_rating_areas
+  function populate_consultant_rating_areas() {
+    $table_name = "consultant_rating_areas";
+    $rows = array(
+      "partner", "programmer", "DI", "BI", "admin", "grid", "VA", "analytics"
     );
     populate1TupleTable($table_name, $rows);
   }
@@ -827,6 +839,7 @@
     populate_verticals();
     populate_geographical_regions();
     populate_opportunity_statuses();
+    populate_consultant_rating_areas();
   }
 
   // Main function
