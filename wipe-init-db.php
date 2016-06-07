@@ -356,7 +356,7 @@
 
   // Create table: partner_vertical_junction
   function create_partner_vertical_junction() {
-    $table_name = "partner_verticals_junction";
+    $table_name = "partner_vertical_junction";
     dropTable($table_name);
 
     // Construct query

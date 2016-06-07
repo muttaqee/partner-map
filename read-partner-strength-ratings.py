@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Read data for partner_strengths table, pass 1/2:
+Read data for partner_strengths_ratings table:
 - Read rows from "Map" worksheet.
 - Encode rows in JSON. In this form:
   {
@@ -61,51 +61,40 @@ height = y_last - y_first + 1 # Number of rows
 def getNameValuePair(name, value):
     return "\"" + name + "\"" + ":" + value
 
-# For a given row, build and return an object in JSON
-def getRow(row_number):
+def getColNameFromX(x):
+    return columns[x-8]
+
+# Read in data
+def encodeRow(x, y, rating_value):
     json_row = ""
+    partner_name = str.strip(ws.cell(row = y, column = 2).value)
+    strength = getColNameFromX(x)
+    rating = rating_value
 
-    for i in range(0, width-1):
-        x = x_first + i
-        if ws.cell(row = row_number, column = x).value:
-            # name-value pair
-            cell_value = str.strip(ws.cell(row = row_number, column = x).value)
-            json_row += getNameValuePair(name = columns[i], value = "\"" + cell_value + "\"") + ","
-        else:
-            # name-null pair
-            json_row += getNameValuePair(name = columns[i], value = "null") + ","
-    # Last name-value pair has no comma
-    if ws.cell(row = row_number, column = x_first + width - 1).value:
-        # name-value pair
-        cell_value = str.strip(ws.cell(row = row_number, column = x_first + width - 1).value)
-        json_row += getNameValuePair(name = columns[width-1], value = "\"" + cell_value + "\"")
-    else:
-        # name-null pair
-        json_row += getNameValuePair(name = columns[width-1], value = "null")
-
+    json_row += getNameValuePair("partner_name", "\"" + partner_name + "\"") + ","
+    json_row += getNameValuePair("strength", "\"" + strength + "\"") + ","
+    json_row += getNameValuePair("rating", "\"" + rating + "\"")
     return "{" + json_row + "}"
 
-# Read data from each row - watch for null cells
-def getAllRows(begin, end):
+def encodeAllRows(x0, x1, y0, y1):
     json_collection = ""
     id = 1
-    for y in range(begin, end):
-        partner_name = str.strip(ws.cell(row = y, column = 2).value)
-        json_collection += getNameValuePair(name = partner_name, value = getRow(y)) + ","
-        id += 1
-    # Last name-value pair has no comma:
-    partner_name = str.strip(ws.cell(row = end, column = 2).value)
-    json_collection += getNameValuePair(name = partner_name, value = getRow(end))
-    return "{" + json_collection + "}"
+    for y in range (y0, y1+1):
+        for x in range (x0, x1+1):
+            if ws.cell(row = y, column = x).value:
+                cell_value = str.strip(str(ws.cell(row = y, column = x).value))
+                json_collection += getNameValuePair(str(id), encodeRow(x, y, cell_value)) + ","
+                id += 1
+    return "{" + json_collection[:-1] + "}"
 
 # Read data from spreadsheet, convert to JSON, and output:
 try:
-    parsed_json = json.loads(getAllRows(y_first, y_last))
+    parsed_json = json.loads(encodeAllRows(x0 = x_first, x1 = x_last, y0 = y_first, y1 = y_last))
 except:
     print("Error: Could not load data from spreadsheet.")
 try:
-    #print(json.dumps(parsed_json))
+    print(json.dumps(parsed_json))
     # Human-readable version:
-    print(json.dumps(parsed_json, indent = 4, sort_keys = True))
+    # print(json.dumps(parsed_json, indent = 4, sort_keys = True))
 except:
     print("Error: Could not output spreadsheet data in JSON.")

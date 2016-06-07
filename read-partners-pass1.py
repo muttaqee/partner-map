@@ -58,7 +58,7 @@ def getRow(row_number):
         # "Unofficial" name (always null here) - FIXME: May remove; in PHP,
         # specifiy which columns to enter data into and leave this one out
         cell_value = str.strip(ws.cell(row = row_number, column = x_name).value);
-        json_row += getNameValuePair(name = "name", value = "null") + ","
+        # json_row += getNameValuePair(name = "name", value = "null") + "," # FIXME: Removed
 
         # Official name (never null)
         json_row += getNameValuePair(name = "official_name", value = "\"" + cell_value + "\"") + ","
