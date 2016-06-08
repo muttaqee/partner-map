@@ -153,7 +153,7 @@
     // foreach ($rows as $row)
   }
 
-  // Populate table: populate_partner_strength_ratings
+  // Populate table: partner_strength_ratings
   function populate_partner_strength_ratings() {
     $table_name = "partner_strength_ratings";
     $columns = array("partner_id", "strength", "rating");
@@ -163,13 +163,9 @@
     $script = "C:\\xampp\htdocs\muttaqee-projects\\partner-map\\read-partner-strength-ratings.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
-    if (!$rows) {
-      echo("<pre>result is empty</pre>");
-    }
-    echo("<pre>" . print_r($rows, $return = true) . "</pre>");
+    echo("<pre>" . print_r($rows, $return = true) . "</pre>"); // FIXME: May remove
 
-    # FIXME: Document what occurs below
-
+    // Prepare $rows array: replace "partner_name" with "partner_id"
     foreach ($rows as $key => $row) {
       $sql = "
         SELECT id FROM partners
@@ -181,6 +177,92 @@
       unset($row['partner_name']);
       $rows[$key] = $row;
     }
+
+    populateTable($table_name, $columns, $rows);
+  }
+
+  // Populate table: populate_partner_technology_ratings
+  function populate_partner_technology_ratings() {
+    $table_name = "partner_technology_ratings";
+    $columns = array("partner_id", "technology_id", "rating");
+
+    // Execute and retrieve JSON rows from Python script (store into $rows)
+    $prog = "C:\Python34\python";
+    $script = "C:\\xampp\htdocs\muttaqee-projects\\partner-map\\read-partner-technology-ratings.py";
+    $cmd = $prog . " " . $script;
+    $rows = json_decode(shell_exec($cmd), true);
+    if (!$rows) {
+      report("<pre>Error: \$rows is empty. Make sure the script is only printing the desired result.</pre>");
+    }
+
+    // FIXME: Prepare $rows before passing to populateTable
+    foreach ($rows as $key => $row) {
+      $sql = "
+      SELECT id FROM partners
+      WHERE partners.official_name LIKE \"" . $row["partner_name"] . "\"
+      LIMIT 1
+      ";
+      $partner_id = mysql_result(query($sql, $sql, false), 0);
+
+      $sql = "
+      SELECT id FROM technologies
+      WHERE technologies.technology LIKE \"" . $row["technology"] . "\"
+      LIMIT 1
+      ";
+      $technology_id = mysql_result(query($sql, $sql, false), 0);
+
+      $row["partner_id"] = $partner_id;
+      $row["technology_id"] = $technology_id;
+      unset($row["partner_name"]);
+      unset($row["technology"]);
+      unset($row["technology_type"]);
+
+      $rows[$key] = $row;
+    }
+
+    populateTable($table_name, $columns, $rows);
+  }
+
+  // Populate table: populate_solution_ratings
+  function populate_partner_solution_ratings() {
+    $table_name = "partner_solution_ratings";
+    $columns = array("partner_id", "solution_id", "rating");
+
+    // Execute and retrieve JSON rows from Python script (store into $rows)
+    $prog = "C:\Python34\python";
+    $script = "C:\\xampp\htdocs\muttaqee-projects\\partner-map\\read-partner-solution-ratings.py";
+    $cmd = $prog . " " . $script;
+    $rows = json_decode(shell_exec($cmd), true);
+    if (!$rows) {
+      report("<pre>Error: \$rows is empty. Make sure the script is only printing the desired result.</pre>");
+    }
+
+    // FIXME: Prepare $rows before passing to populateTable
+    foreach ($rows as $key => $row) {
+      $sql = "
+      SELECT id FROM partners
+      WHERE partners.official_name LIKE \"" . $row["partner_name"] . "\"
+      LIMIT 1
+      ";
+      $partner_id = mysql_result(query($sql, $sql, false), 0);
+
+      $sql = "
+      SELECT id FROM solutions
+      WHERE solutions.solution LIKE \"" . $row["solution"] . "\"
+      LIMIT 1
+      ";
+      $solution_id = mysql_result(query($sql, $sql, false), 0);
+
+      $row["partner_id"] = $partner_id;
+      $row["solution_id"] = $solution_id;
+      unset($row["partner_name"]);
+      unset($row["solution"]);
+      unset($row["solution_type"]);
+
+      $rows[$key] = $row;
+    }
+    #echo("<pre>" . print_r($rows, $return = true) . "</pre>"); // FIXME: May remove
+
     populateTable($table_name, $columns, $rows);
   }
 
@@ -188,8 +270,8 @@
   function populateTables() {
     // populate_partners(); # FIXME: Uncomment (this works)
     // populate_partner_strength_ratings(); # FIXME: Uncomment (this works)
-    // populate_partner_technology_ratings();
-    // populate_partner_solution_ratings();
+    // populate_partner_technology_ratings(); # FIXME: Uncomment (this works)
+    populate_partner_solution_ratings();
     // populate_partner_misc_ratings();
     // populate_partner_vertical_junction();
     // populate_partner_region_junction();

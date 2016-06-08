@@ -48,8 +48,14 @@ try:
 except:
     print("Error: Could not load worksheet.")
 
-# Column and rows to remember
-columns = ['Technical - Quality', 'Financial Rate Negotiation', 'Process & Training', 'Political - SAS/Customer', 'Social - Responsive']
+# Column and rows in worksheet to remember
+columns = [
+'Technical - Quality',
+'Financial Rate Negotiation',
+'Process & Training',
+'Political - SAS/Customer',
+'Social - Responsive'
+]
 x_first = column_index_from_string('H')
 x_last = column_index_from_string('L')
 y_first = 4
@@ -64,9 +70,10 @@ def getNameValuePair(name, value):
 def getColNameFromX(x):
     return columns[x-8]
 
-# Read in data
+# Read in and associate data with partner_name, strength, or rating db columns
 def encodeRow(x, y, rating_value):
     json_row = ""
+
     partner_name = str.strip(ws.cell(row = y, column = 2).value)
     strength = getColNameFromX(x)
     rating = rating_value
@@ -74,6 +81,7 @@ def encodeRow(x, y, rating_value):
     json_row += getNameValuePair("partner_name", "\"" + partner_name + "\"") + ","
     json_row += getNameValuePair("strength", "\"" + strength + "\"") + ","
     json_row += getNameValuePair("rating", "\"" + rating + "\"")
+
     return "{" + json_row + "}"
 
 def encodeAllRows(x0, x1, y0, y1):
