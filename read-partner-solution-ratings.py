@@ -54,7 +54,8 @@ super_columns = ["CFS", "CIS", "PMS", "SCS", "HLS", "RTS", "EN"]
 columns = [
 "Fraud and Financial Crimes",
 "Anti-Money Laundering",
-"Credit Scoring", # 3 (4) NOTE: The excel sheet has a duplicate column for this.
+"Credit Scoring", # NOTE: The excel sheet has a duplicate column for this.
+"Credit Scoring", # NOTE: The excel sheet has a duplicate column for this.
 "Credit Risk Managment",
 "Risk Dimensions / Management",
 "OpRisk Management",
@@ -168,7 +169,7 @@ def encodeAllRows(x0, x1, y0, y1):
         for x in range (x0, x1+1):
             cell_value = (str.strip(str(ws.cell(row = y, column = x).value))).upper()
             if cell_value and acceptString(cell_value):
-                json_collection += getNameValuePair(str(id), encodeRow(x, y, rating_value = cell_value)) + ","
+                json_collection += getNameValuePair(str(id), encodeRow(x, y, cell_value)) + ","
                 id += 1
 
     return "{" + json_collection[:-1] + "}"
