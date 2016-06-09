@@ -86,48 +86,6 @@
     }
   }
 
-  // Populate table with complication: must insert partners.id instead of partner_name
-  // function populateTableSpecial($table_name, $columns, $rows) {
-  //   $row_width = count($columns);
-  //   foreach ($rows as $row) {
-  //     $cols_string = "";
-  //     $vals_string = "";
-  //     for ($i = 0; $i < $row_width-1; $i++) {
-  //       if ($i == 0) {
-  //         $cols_string .= "partner_id,";
-  //       } else {
-  //         $cols_string .= $columns[$i] . ",";
-  //       }
-  //       if ($i == 0) {
-  //         $vals_string .= "\"" . $row[$columns[$i]] . "\",";
-  //       } else {
-  //         $sql = "
-  //         SELECT id
-  //         FROM partners
-  //         WHERE partners.official_name LIKE \"" . $row["partner_name"] . "\"
-  //         LIMIT 1
-  //         ";
-  //         $vals_string .= "\"" . mysql_result(query($sql, $sql, false), 0) . "\",";
-  //       }
-  //     }
-  //     $cols_string .= $columns[$row_width-1]; # Fixme: Remove
-  //     $vals_string .= "\"" . $row[$columns[$row_width-1]] . "\""; # FIXME: Remove
-  //     // if ($i == 0) {
-  //     //   $vals_string .= "\"" . $row[$columns[$row_width-1]] . "\",";
-  //     // } else {
-  //     //   $sql = "
-  //     //   SELECT id
-  //     //   FROM partners
-  //     //   WHERE partners.official_name LIKE \"" . $row["partner_name"] . "\"
-  //     //   LIMIT 1
-  //     //   ";
-  //     //   $vals_string .= "\"" . mysql_result(query($sql, $sql, false), 0) . "\",";
-  //     // }
-  //     $sql = "INSERT INTO $table_name ($cols_string) VALUES ($vals_string)";
-  //     query($sql, $sql, false);
-  //   }
-  // }
-
   // Helper: insert values into a table
   // $columns: an indexed array of column names
   // $rows: an indexed array of rows, where each row is an associative array of
@@ -181,7 +139,7 @@
     populateTable($table_name, $columns, $rows);
   }
 
-  // Populate table: populate_partner_technology_ratings
+  // Populate table: partner_technology_ratings
   function populate_partner_technology_ratings() {
     $table_name = "partner_technology_ratings";
     $columns = array("partner_id", "technology_id", "rating");
@@ -223,7 +181,7 @@
     populateTable($table_name, $columns, $rows);
   }
 
-  // Populate table: populate_solution_ratings
+  // Populate table: partner_solution_ratings
   function populate_partner_solution_ratings() {
     $table_name = "partner_solution_ratings";
     $columns = array("partner_id", "solution_id", "rating");
@@ -266,16 +224,144 @@
     populateTable($table_name, $columns, $rows);
   }
 
+  // Populate table: partner_misc_ratings
+  function populate_partner_misc_ratings() {
+    $table_name = "partner_misc_ratings";
+    $columns = array("partner_id", "misc_type", "rating");
+
+    // Execute and retrieve JSON rows from Python script (store into $rows)
+    $prog = "C:\Python34\python";
+    $script = "C:\\xampp\htdocs\muttaqee-projects\\partner-map\\read-partner-misc-ratings.py";
+    $cmd = $prog . " " . $script;
+    $rows = json_decode(shell_exec($cmd), true);
+    if (!$rows) {
+      report("<pre>Error: \$rows is empty. Make sure the script is only printing the desired result.</pre>");
+    }
+
+    // FIXME: Prepare $rows before passing to populateTable
+    foreach ($rows as $key => $row) {
+      $sql = "
+      SELECT id FROM partners
+      WHERE partners.official_name LIKE \"" . $row["partner_name"] . "\"
+      LIMIT 1
+      ";
+      $partner_id = mysql_result(query($sql, $sql, false), 0);
+
+      $row["partner_id"] = $partner_id;
+      unset($row["partner_name"]);
+
+      $rows[$key] = $row;
+    }
+    # echo("<pre>" . print_r($rows, $return = true) . "</pre>"); // FIXME: May remove
+    populateTable($table_name, $columns, $rows);
+  }
+
+  // Populate table: partner_vertical_junction
+  function populate_partner_vertical_junction() {
+    $table_name = "partner_vertical_junction";
+    $columns = array("partner_id", "vertical");
+
+    // Execute and retrieve JSON rows from Python script (store into $rows)
+    $prog = "C:\Python34\python";
+    $script = "C:\\xampp\htdocs\muttaqee-projects\\partner-map\\read-partner-vertical-junction.py";
+    $cmd = $prog . " " . $script;
+    $rows = json_decode(shell_exec($cmd), true);
+    if (!$rows) {
+      report("<pre>Error: \$rows is empty. Make sure the script is only printing the desired result.</pre>");
+    }
+
+    // FIXME: Prepare $rows before passing to populateTable
+    foreach ($rows as $key => $row) {
+      $sql = "
+      SELECT id FROM partners
+      WHERE partners.official_name LIKE \"" . $row["partner_name"] . "\"
+      LIMIT 1
+      ";
+      $partner_id = mysql_result(query($sql, $sql, false), 0);
+
+      $row["partner_id"] = $partner_id;
+      unset($row["partner_name"]);
+
+      $rows[$key] = $row;
+    }
+    # echo("<pre>" . print_r($rows, $return = true) . "</pre>"); // FIXME: May remove
+    populateTable($table_name, $columns, $rows);
+  }
+
+  // Populate table: partner_region_junction
+  function populate_partner_region_junction() {
+    $table_name = "partner_region_junction";
+    $columns = array("partner_id", "region");
+
+    // Execute and retrieve JSON rows from Python script (store into $rows)
+    $prog = "C:\Python34\python";
+    $script = "C:\\xampp\htdocs\muttaqee-projects\\partner-map\\read-partner-region-junction.py";
+    $cmd = $prog . " " . $script;
+    $rows = json_decode(shell_exec($cmd), true);
+    if (!$rows) {
+      report("<pre>Error: \$rows is empty. Make sure the script is only printing the desired result.</pre>");
+    }
+
+    // FIXME: Prepare $rows before passing to populateTable
+    foreach ($rows as $key => $row) {
+      $sql = "
+      SELECT id FROM partners
+      WHERE partners.official_name LIKE \"" . $row["partner_name"] . "\"
+      LIMIT 1
+      ";
+      $partner_id = mysql_result(query($sql, $sql, false), 0);
+
+      $row["partner_id"] = $partner_id;
+      unset($row["partner_name"]);
+
+      $rows[$key] = $row;
+    }
+    echo("<pre>" . print_r($rows, $return = true) . "</pre>"); // FIXME: May remove
+    #populateTable($table_name, $columns, $rows);
+  }
+
+  // Populate table: consultants
+  function populate_consultants() {
+    $table_name = "consultants";
+    $columns = array("id", "first_name", "last_name", "rating", "is_rejected");
+
+    // Execute and retrieve JSON rows from Python script (store into $rows)
+    $prog = "C:\Python34\python";
+    $script = "C:\\xampp\htdocs\muttaqee-projects\\partner-map\\read-consultants.py";
+    $cmd = $prog . " " . $script;
+    $rows = json_decode(shell_exec($cmd), true);
+    if (!$rows) {
+      report("<pre>Error: \$rows is empty. Make sure the script is only printing the desired result.</pre>");
+    }
+
+    // FIXME: Prepare $rows before passing to populateTable
+    foreach ($rows as $key => $row) {
+      $sql = "
+      SELECT id FROM partners
+      WHERE partners.official_name LIKE \"" . $row["partner_name"] . "\"
+      LIMIT 1
+      ";
+      $partner_id = mysql_result(query($sql, $sql, false), 0);
+
+      $row["partner_id"] = $partner_id;
+      unset($row["partner_name"]);
+
+      $rows[$key] = $row;
+    }
+    echo("<pre>" . print_r($rows, $return = true) . "</pre>"); // FIXME: May remove
+    #populateTable($table_name, $columns, $rows);
+  }
+
   // Populate tables that do no need to be read from the workbook
   function populateTables() {
-    // populate_partners(); # FIXME: Uncomment (this works)
+    //populate_partners(); # FIXME: use separate PHP file, write-partners-pass1.php - for this
     // populate_partner_strength_ratings(); # FIXME: Uncomment (this works)
     // populate_partner_technology_ratings(); # FIXME: Uncomment (this works)
-    populate_partner_solution_ratings();
-    // populate_partner_misc_ratings();
-    // populate_partner_vertical_junction();
-    // populate_partner_region_junction();
-    // populate_consultants();
+    // populate_partner_solution_ratings(); # FIXME: Uncomment (this works)
+    // populate_partner_misc_ratings(); # FIXME: Uncomment (this works)
+    // populate_partner_vertical_junction(); # FIXME: Uncomment (this works)
+    // populate_partner_region_junction(); # FIXME: Uncomment (this works)
+    populate_consultants();
     // populate_consultant_ratings();
     // populate_consultant_partner_junction();
   }
