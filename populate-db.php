@@ -77,6 +77,11 @@
     }
   }
 
+  // Helper: checks if value is 0 or 1
+  function isBoolean($val) {
+    return ($val == 0 || $val == 1);
+  }
+
   // Helper: inserts single value into a one-column table
   function populate1TupleTable($table_name, $value_array) {
     foreach ($value_array as $value) {
@@ -316,14 +321,16 @@
 
       $rows[$key] = $row;
     }
-    echo("<pre>" . print_r($rows, $return = true) . "</pre>"); // FIXME: May remove
-    #populateTable($table_name, $columns, $rows);
+    #echo("<pre>" . print_r($rows, $return = true) . "</pre>"); // FIXME: May remove
+    populateTable($table_name, $columns, $rows);
   }
 
   // Populate table: consultants
   function populate_consultants() {
     $table_name = "consultants";
-    $columns = array("id", "first_name", "last_name", "rating", "is_rejected");
+    # FIXME: Temporarily ignoring some columns
+    # $columns = array("id", "first_name", "last_name", "rating", "is_rejected");
+    $columns = array("last_name", "rating", "is_rejected");
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
@@ -334,21 +341,33 @@
       report("<pre>Error: \$rows is empty. Make sure the script is only printing the desired result.</pre>");
     }
 
-    // FIXME: Prepare $rows before passing to populateTable
     foreach ($rows as $key => $row) {
-      $sql = "
-      SELECT id FROM partners
-      WHERE partners.official_name LIKE \"" . $row["partner_name"] . "\"
-      LIMIT 1
-      ";
-      $partner_id = mysql_result(query($sql, $sql, false), 0);
-
-      $row["partner_id"] = $partner_id;
-      unset($row["partner_name"]);
-
+      $row["is_rejected"] = 0;
       $rows[$key] = $row;
     }
     echo("<pre>" . print_r($rows, $return = true) . "</pre>"); // FIXME: May remove
+
+    # Query here (need to pass 0/1 values as integers, not string)
+    $row_width = count($columns);
+    foreach ($rows as $row) {
+      $cols_string = "";
+      $vals_string = "";
+      for ($i = 0; $i < $row_width-1; $i++) {
+        $cols_string .= $columns[$i] . ",";
+        $val = $row[$columns[$i]];
+        // FIXME: Temporary fix to issue of passing 1-BIT value (0 or 1)
+        if ($columns[$i] == "is_rejected") {
+          $vals_string .= "0,";
+        } else {
+          $vals_string .= "\"" . $row[$columns[$i]] . "\",";
+        }
+      }
+      $cols_string .= $columns[$row_width-1];
+      $vals_string .= "\"" . $row[$columns[$row_width-1]] . "\"";
+      $sql = "INSERT INTO $table_name ($cols_string) VALUES ($vals_string)";
+      smallReport($sql);
+      #query($sql, $sql, false);
+    }
     #populateTable($table_name, $columns, $rows);
   }
 
