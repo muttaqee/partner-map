@@ -603,7 +603,8 @@
       "A+", "A", "A-",
       "B+", "B", "B-",
       "C+", "C", "C-",
-      "D+", "D", "D-"
+      "D+", "D", "D-",
+      "F", "No rating"
     );
     populate1TupleTable($table_name, $rows);
   }
@@ -611,7 +612,7 @@
   // Populate table: ratings_simple
   function populate_ratings_simple() {
     $table_name = "ratings_simple";
-    $rows = array("A", "B", "C", "D");
+    $rows = array("A", "B", "C", "D", "F", "No rating");
     populate1TupleTable($table_name, $rows);
   }
 
