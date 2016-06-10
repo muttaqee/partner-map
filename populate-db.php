@@ -347,23 +347,30 @@
     }
     echo("<pre>" . print_r($rows, $return = true) . "</pre>"); // FIXME: May remove
 
-    # Query here (need to pass 0/1 values as integers, not string)
+    // Build columns and values lists to put into query
     $row_width = count($columns);
     foreach ($rows as $row) {
       $cols_string = "";
       $vals_string = "";
-      for ($i = 0; $i < $row_width-1; $i++) {
+      for ($i = 0; $i < $row_width; $i++) {
+        // COLUMN
         $cols_string .= $columns[$i] . ",";
+        // VALUE
         $val = $row[$columns[$i]];
         // FIXME: Temporary fix to issue of passing 1-BIT value (0 or 1)
         if ($columns[$i] == "is_rejected") {
           $vals_string .= "0,";
+        } else if ($columns[$i] == "rating" && $val == "null") {
+          $vals_string .= "null,";
         } else {
           $vals_string .= "\"" . $row[$columns[$i]] . "\",";
         }
       }
-      $cols_string .= $columns[$row_width-1];
-      $vals_string .= "\"" . $row[$columns[$row_width-1]] . "\"";
+      // Remove trailing commas
+      $cols_string = rtrim($cols_string, ",");
+      $vals_string = rtrim($vals_string, ",");
+
+      # Query here (need to pass 0/1 values as integers, not string)
       $sql = "INSERT INTO $table_name ($cols_string) VALUES ($vals_string)";
       smallReport($sql);
       #query($sql, $sql, false);
@@ -373,13 +380,13 @@
 
   // Populate tables that do no need to be read from the workbook
   function populateTables() {
-    //populate_partners(); # FIXME: use separate PHP file, write-partners-pass1.php - for this
-    // populate_partner_strength_ratings(); # FIXME: Uncomment (this works)
-    // populate_partner_technology_ratings(); # FIXME: Uncomment (this works)
-    // populate_partner_solution_ratings(); # FIXME: Uncomment (this works)
-    // populate_partner_misc_ratings(); # FIXME: Uncomment (this works)
-    // populate_partner_vertical_junction(); # FIXME: Uncomment (this works)
-    // populate_partner_region_junction(); # FIXME: Uncomment (this works)
+    // populate_partners(); # FIXME: use separate PHP file, write-partners-pass1.php - for this
+    populate_partner_strength_ratings(); # FIXME: Uncomment (this works)
+    populate_partner_technology_ratings(); # FIXME: Uncomment (this works)
+    populate_partner_solution_ratings(); # FIXME: Uncomment (this works)
+    populate_partner_misc_ratings(); # FIXME: Uncomment (this works)
+    populate_partner_vertical_junction(); # FIXME: Uncomment (this works)
+    populate_partner_region_junction(); # FIXME: Uncomment (this works)
     populate_consultants();
     // populate_consultant_ratings();
     // populate_consultant_partner_junction();
