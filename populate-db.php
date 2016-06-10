@@ -98,14 +98,16 @@
   function populateTable($table_name, $columns, $rows) {
     $row_width = count($columns);
     foreach ($rows as $row) {
+      // Build columns and valus list
       $cols_string = "";
       $vals_string = "";
-      for ($i = 0; $i < $row_width-1; $i++) {
+      for ($i = 0; $i < $row_width; $i++) {
         $cols_string .= $columns[$i] . ",";
         $vals_string .= "\"" . $row[$columns[$i]] . "\",";
       }
-      $cols_string .= $columns[$row_width-1];
-      $vals_string .= "\"" . $row[$columns[$row_width-1]] . "\"";
+      // Remove trailing commas
+      $cols_string = rtrim($cols_string, ",");
+      $vals_string = rtrim($vals_string, ",");
       $sql = "INSERT INTO $table_name ($cols_string) VALUES ($vals_string)";
       query($sql, $sql, false);
     }
@@ -347,12 +349,12 @@
     }
     echo("<pre>" . print_r($rows, $return = true) . "</pre>"); // FIXME: May remove
 
-    // Build columns and values lists to put into query
     $row_width = count($columns);
     foreach ($rows as $row) {
       $cols_string = "";
       $vals_string = "";
       for ($i = 0; $i < $row_width; $i++) {
+        // Build columns and values lists to put into query
         // COLUMN
         $cols_string .= $columns[$i] . ",";
         // VALUE
@@ -361,7 +363,7 @@
         if ($columns[$i] == "is_rejected") {
           $vals_string .= "0,";
         } else if ($columns[$i] == "rating" && $val == "null") {
-          $vals_string .= "null,";
+          $vals_string .= "\"No rating\",";
         } else {
           $vals_string .= "\"" . $row[$columns[$i]] . "\",";
         }
@@ -372,10 +374,8 @@
 
       # Query here (need to pass 0/1 values as integers, not string)
       $sql = "INSERT INTO $table_name ($cols_string) VALUES ($vals_string)";
-      smallReport($sql);
-      #query($sql, $sql, false);
+      query($sql, $sql, false);
     }
-    #populateTable($table_name, $columns, $rows);
   }
 
   // Populate tables that do no need to be read from the workbook
