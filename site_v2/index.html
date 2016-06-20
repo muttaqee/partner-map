@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SAS Third-Party Channels Resources</title> <!--FIXME-Rename-->
+  <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+
+  <div id="header"></div>
+
+  <div id="left_column" class="column"></div>
+
+  <div id="middle_column" class="column">
+
+    <div id="menu_bar">
+      <div id="find_button" class="button menu_bar_button">Find a resource</div>
+      <div id="add_button" class="button menu_bar_button">Add a resource</div>
+    </div>
+
+    <div id="main_container" class="container">
+      <form action="query.php" method="post">
+
+        <div id="filter_pane" class="pane">
+          <div id="opportunity_filters" class="widget">
+            <!--Pull (some) filters from db?-->
+            <input type="checkbox" name="Opportunities" value="Opportunities">
+            <label for="Partner_Plus" id="partner_plus_label">Opportunities</label>
+            <ol>
+              <li>
+                <input type="checkbox" name="Partner_Plus" value="Partner Plus">
+                <label for="Partner_Plus" id="partner_plus_label">Partner Plus</label>
+              </li>
+              <li>
+                <input type="checkbox" name="Partner_Plus" value="Partner Plus">
+                <label for="Partner_Plus" id="partner_plus_label">Partner Plus</label>
+              </li>
+              <li>
+                <input type="checkbox" name="Partner_Plus" value="Partner Plus">
+                <label for="Partner_Plus" id="partner_plus_label">Partner Plus</label>
+              </li>
+            </ol>
+          </div>
+
+          <div id="partner_filters" class="widget">
+            <ol>
+              <li>
+                <input type="checkbox" name="Partner_Plus" value="Partner Plus">
+                <label for="Partner_Plus" id="partner_plus_label">Partner Plus</label>
+              </li>
+              <li>
+                <input type="checkbox" name="Partner_Plus" value="Partner Plus">
+                <label for="Partner_Plus" id="partner_plus_label">Partner Plus</label>
+              </li>
+              <li>
+                <input type="checkbox" name="Partner_Plus" value="Partner Plus">
+                <label for="Partner_Plus" id="partner_plus_label">Partner Plus</label>
+              </li>
+              <li>
+                <input type="checkbox" name="Partner_Plus" value="Partner Plus">
+                <label for="Partner_Plus" id="partner_plus_label">Partner Plus</label>
+              </li>
+            </ol>
+          </div>
+
+          <div id="consultant_filters" class="widget">
+
+            <ol>
+              <li>
+                <input type="checkbox" name="Partner_Plus" value="Partner Plus">
+                <label for="Partner_Plus" id="partner_plus_label">Partner Plus</label>
+              </li>
+              <li>
+                <input type="checkbox" name="Partner_Plus" value="Partner Plus">
+                <label for="Partner_Plus" id="partner_plus_label">Partner Plus</label>
+              </li>
+            </ol>
+          </div>
+
+        </div>
+
+        <div id="search_pane" class="pane">
+          <div id="search_bar" class="widget">
+
+            <input type="text" placeholder="Search..." required>
+            <input type="button" value="Search">
+
+            <label for="order_dropdown">order by</label>
+            <select name="order_dropdown">
+              <option value="Name">Name</option>
+              <option value="Date">Date</option>
+            </select>
+
+            <label for="order_dropdown">then by</label>
+            <select name="order_dropdown">
+              <option value="Name">Name</option>
+              <option value="Date">Date</option>
+            </select>
+
+          </div>
+          <div id="opportunity_card" class="widget card">
+            <h3>Last name, first name</h3>
+            <p>5 ratings found</p>
+          </div> <!--FIXME-remove-->
+          <div id="partner_card" class="widget card"></div> <!--FIXME-remove-->
+          <div id="consultant_card" class="widget card"></div> <!--FIXME-remove-->
+        </div>
+
+      </form>
+    </div>
+
+  </div>
+
+  <div id="right_column" class="column"></div>
+
+</body>
+</html>
