@@ -45,7 +45,7 @@
 
   // Connect to MySQL server
   function connect() {
-    global $db_host, $db_user, $db_pass, $db_name, $link;
+    global $db_host, $db_user, $db_pass, $db_name, $link; // FIXME: Declared correctly? ($link, etc)
     $link = mysql_connect($db_host, $db_user, $db_pass);
     if (!$link) {
       die("Could not connect to server: " . mysql_error());
@@ -66,7 +66,7 @@
     global $link;
     $result = mysql_query($query_string, $link);
     if (!$result) {
-      if ($die_on_failure) {
+      if ($die_on_failure) { // FIXME: Have better error handling than this
         die("Terminating. Error: " . mysql_error());
       } else {
         report("Error: " . mysql_error());

@@ -56,6 +56,22 @@ function insertQuery() {
 // Construct query
 function constructQuery() {
   $query_string = "";
+  $SELECT = "*";
+  $FROM = "";
+  $WHERE = "";
+  if (!empty($_POST["SELECT"])) {
+    $SELECT = strtolower(trim($_POST["SELECT"]));
+  }
+  if (!empty($_POST["FROM"])) {
+    $FROM = strtolower(trim($_POST["FROM"]));
+    $query_string = "SELECT $SELECT FROM $FROM";
+  } else {
+    die(); // FIXME: have better error handling
+  }
+  if (!empty($_POST["WHERE"])) {
+    $WHERE = strtolower(trim($_POST["WHERE"]));
+    $query_string .= " WHERE $WHERE";
+  }
   // $operation = $_POST["operation"];
   // switch ($operation) {
   //   case "SELECT":
@@ -67,9 +83,7 @@ function constructQuery() {
   //   break;
   // }
   // FIXME: THIS IS TEMPORARY: SEND QUERY RESULT TO JS -> JS SENDS TO VIEW
-  $query_string .= "
-  SELECT * FROM " . $_POST["table"] . ";
-  ";
+  $query_string .= ";";
   return $query_string;
 }
 
