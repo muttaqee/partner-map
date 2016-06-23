@@ -40,48 +40,26 @@ function query($query_string) {
   }
 }
 
-// Construct SELECT query // FIXME
-function selectQuery() {
-  // $query = "SELECT ";
-  // $columns =
-  // $tables =
-  // return $query;
-}
-
-// Construct INSERT query // FIXME
-function insertQuery() {
-  // $query = "INSERT INTO " . $_POST["table"];
-}
-
 // Construct query
 function constructQuery() {
   $query_string = "";
   $SELECT = "*";
   $FROM = "";
   $WHERE = "";
-  if (!empty($_POST["SELECT"])) {
+  if (!empty($_POST["SELECT"]) && (strlen(trim($_POST["SELECT"])) > 0)) {
     $SELECT = strtolower(trim($_POST["SELECT"]));
   }
-  if (!empty($_POST["FROM"])) {
+  if (!empty($_POST["FROM"]) && (strlen(trim($_POST["FROM"])) > 0)) {
     $FROM = strtolower(trim($_POST["FROM"]));
     $query_string = "SELECT $SELECT FROM $FROM";
   } else {
     die(); // FIXME: have better error handling
   }
-  if (!empty($_POST["WHERE"])) {
+  if (!empty($_POST["WHERE"]) && (strlen(trim($_POST["WHERE"])) > 0)) {
     $WHERE = strtolower(trim($_POST["WHERE"]));
     $query_string .= " WHERE $WHERE";
   }
-  // $operation = $_POST["operation"];
-  // switch ($operation) {
-  //   case "SELECT":
-  //   $query_string .= "SELECT "
-  //   break;
-  //   case "INSERT":
-  //   break;
-  //   default:
-  //   break;
-  // }
+
   // FIXME: THIS IS TEMPORARY: SEND QUERY RESULT TO JS -> JS SENDS TO VIEW
   $query_string .= ";";
   return $query_string;
