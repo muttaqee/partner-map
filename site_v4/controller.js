@@ -243,7 +243,7 @@ $(document).ready(function() {
     $header.html(name_str);
     $header.appendTo($category);
 
-    return $category
+    return $category;
   }
 
   // Filter boxes contain groups of filter items associated with one kind of
@@ -261,16 +261,64 @@ $(document).ready(function() {
     $header.attr("class", "filter_box_header");
 
     var radioId = makeId(label_str);
-    $radioInput = $("<ipnut type=\"radio\"></input>");
+    $radioInput = $("<input type=\"radio\"></input>");
     $radioInput.attr("name", "resource_select");
     $radioInput.attr("value", label_str.toLowerCase());
-    radioInput.attr("id", radioId);
+    $radioInput.attr("id", radioId);
 
-    $label = $("<label for=\"" + mradioId + "\">" + label_str + "</label>");
+    $label = $("<label for=\"" + radioId + "\">" + label_str + "</label>");
 
     $header.append($radioInput);
     $header.append($label);
     $filterBox.append($header);
+
+    return $filterBox;
+  }
+
+  function buildConsultantFilterBox() {
+    var $filterBox;
+
+    var $ratingAreaFilterCategory;
+    var $partnerFilterCategory;
+
+    var rtg_fc_id = "rating_filter_category";
+    var ptr_fc_id = "partner_filter_category";
+
+    $filterBox = buildFilterBox("consultant_filter_box", "Consultants");
+
+    $ratingAreaFilterCategory = buildFilterCategory(rtg_fc_id, "Rating Areas");
+    $partnerFilterCategory = buildFilterCategory(ptr_fc_id, "Associated Partners");
+
+    $ratingAreaFilterCategory.append(buildRatingFilterItem(
+      "rating_filter_item",
+      "consultant_rating_areas",
+      true
+    ));
+
+    // Associated partners filter category // FIXME: LEFT OFF HERE 6/24
+    selectQuery(
+      "partners.official_name AS name, partners.id AS id",
+      "partners, consultant_partner_junction",
+      "partners.id = consultant_partner_junction.partner_id GROUP BY partners.official_name",
+      function(result) {
+        var $select = $("<select class=\"main\"></select>");
+        var rows = JSON.parse(result);
+        var $filterItem, id_str, val_str, label_str;
+        for (var i = 0; i < rows.length; i += 1) {
+          id_str = val_str = rows[i]["id"];
+          label_str = rows[i]["name"];
+          $filterItem = build
+        }
+      }
+    );
+    // $partnerFilterCategory.append(buildRatingFilterItem(
+    //   "partner_filter_item",
+    //   "consultant_partner_junction",
+    //   true
+    // ));
+
+    $filterBox.append($ratingAreaFilterCategory);
+    //$filterBox.append($partnerFilterCategory);
 
     return $filterBox;
   }
@@ -322,22 +370,44 @@ $(document).ready(function() {
       true
     ));
 
-    // Look to "buildDropDownListFromTable" (starting line 138ish) for
-    // populating the vertical and region filters
-    var verticalFilters = [
+    // Vertical filter category
+    selectQuery("*", "verticals", "", function(result) {
+      var rows = JSON.parse(result);
 
-    ];
+      for (var i = 0; i < rows.length; i += 1) {
+        var $filterItem;
+        var id_str, val_str, label_str;
+        for (var col in rows[i]) {
+          id_str = makeId(rows[i][col]) + "_filter_item";
+          val_str = label_str = rows[i][col];
+        }
+        $filterItem = buildCheckboxFilterItem(id_str, val_str, label_str);
+        $verticalFilterCategory.append($filterItem);
+      }
+    });
 
-    var regionFilters = [
+    // Region filter category
+    selectQuery("*", "geographical_regions", "", function(result) {
+      var rows = JSON.parse(result);
 
-    ];
+      for (var i = 0; i < rows.length; i += 1) {
+        var $filterItem;
+        var id_str, val_str, label_str;
+        for (var col in rows[i]) {
+          id_str = makeId(rows[i][col]) + "_filter_item";
+          val_str = label_str = rows[i][col];
+        }
+        $filterItem = buildCheckboxFilterItem(id_str, val_str, label_str);
+        $regionFilterCategory.append($filterItem);
+      }
+    });
 
     $filterBox.append($strengthFilterCategory);
-    $filterBod.append($technologyFilterCategory);
-    $filerBox.append($solutionFilterCategory);
+    $filterBox.append($technologyFilterCategory);
+    $filterBox.append($solutionFilterCategory);
     $filterBox.append($miscFilterCategory);
-    // $filterBox.append($verticalFilterCategory); // Uncomment
-    // $filterBox.append($regionFilterCategory); // Uncomment
+    $filterBox.append($verticalFilterCategory);
+    $filterBox.append($regionFilterCategory);
 
     return $filterBox;
   }
@@ -350,77 +420,29 @@ $(document).ready(function() {
 
     var $oppFilterBox, $partnerFilterBox, $consultantFilterBox;
 
-    var $partnerStrenFilters;
-    var $partnerTechFilters;
-    var $partnerSolFilters;
-    var $partnerMiscFilters;
-    var $partnerVertFilters;
-    var $partnerRegFilters;
-
-    /* FIXME: ALSO NEED oppFilters AND consultantFilters */
-
     // Instantiate view elements
     $body = $("body");
 
     $form = $("<form></form>"); // FIXME: If using >1 form, change this (more specific)
-    // $form.appendTo($body);
+    $form.appendTo($body);
 
     $filterPanel = $("<div></div>");
-    $filterPanel.attr("id", "search_panel");
-    // $filterPanel.appendTo($form);
+    $filterPanel.attr("id", "filter_panel");
+    $filterPanel.appendTo($form);
 
     $resultPanel = $("<div></div>");
     $resultPanel.attr("id", "result_panel");
-    // $resultPanel.appendTo($form);
+    $resultPanel.appendTo($form);
 
-    $oppFilterBox = $("<div></div>");
-    $oppFilterBox.attr("id", "opp_filter_box");
+    // $oppFilterBox = buildOpportunityFilterBox();
+    // $oppFilterBox.attr("id", "opp_filter_box");
     // $oppFilterBox.appendTo($filterPanel);
 
-    $partnerFilterBox = $("<div></div>");
-    $partnerFilterBox.attr("id", "partner_filter_box");
-    // $partnerFilterBox.appendTo($filterPanel);
+    $partnerFilterBox = buildPartnerFilterBox();
+    $partnerFilterBox.appendTo($filterPanel);
 
-    $consultantFilterBox = $("<div></div>");
-    $consultantFilterBox.attr("id", "consultant_filter_box");
-
-    $partnerStrenFilters = $("<div></div>");
-    $partnerStrenFilters.attr("id", "partner_stren_filters");
-
-    $partnerTechFilters = $("<div></div>");
-    $partnerTechFilters.attr("id", "partner_tech_filters");
-
-    $partnerSolFilters = $("<div></div>");
-    $partnerSolFilters.attr("id", "partner_sol_filters");
-
-    $partnerMiscFilters = $("<div></div>");
-    $partnerMiscFilters.attr("id", "partner_misc_filters");
-
-    $partnerVertFilters = $("<div></div>");
-    $partnerVertFilters.attr("id", "partner_vert_filters");
-
-    $partnerRegFilters = $("<div></div>");
-    $partnerRegFilters.attr("id", "partner_reg_filters");
-
-    // Build (nest) view elements
-    partnerFilters = [
-      $partnerStrenFilters,
-      $partnerTechFilters,
-      $partnerSolFilters,
-      $partnerMiscFilters,
-      $partnerVertFilters,
-      $partnerRegFilters
-    ];
-    var length = partnerFilters.length;
-    for (var i = 0; i < length; i++) {
-      partnerFilters[i].appendTo($partnerFilterBox);
-    }
-
-    filterBoxes = [$oppFilterBox, $partnerFilterBox, $consultantFilterBox];
-    length = filterBoxes.length;
-    for (var i = 0; i < length; i++) {
-      filterBoxes[i].appendTo($filterPanel);
-    }
+    $consultantFilterBox = buildConsultantFilterBox();
+    $consultantFilterBox.appendTo($filterPanel);
 
     $filterPanel.appendTo($form);
     $resultPanel.appendTo($form);
@@ -437,13 +459,8 @@ $(document).ready(function() {
   // Program start
   function execute() {
     alert("Executing...");
-    //buildView(); // FIXME: Uncomment
+    buildView();
     // testQuery();
-    var listType = "technologies";
-    $ratingFilterItem = buildRatingFilterItem(listType, listType, true);
-    $("body").append($ratingFilterItem);
-    $("body").append(buildRatingFilterSetting($ratingFilterItem));
-    $("body").append(buildPartnerFilterBox());
     // Listen for view changes
   }
 

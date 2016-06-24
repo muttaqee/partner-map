@@ -36,7 +36,7 @@ form {
 	height: auto;
 }
 
-#search_panel {
+#filter_panel {
 	background-color: lightgrey;
 	border: 1px solid black;
 	display: inline;
@@ -47,9 +47,25 @@ form {
 
 #result_panel {
 	background-color: steelblue;
-	border: 10px solid salmon;
+	border: 1px solid chartreuse;
 	display: inline;
 	float: left;
 	width: 65%;
 	height: 100%;
+}
+
+.filter_category {
+	background-color: white;
+	margin: 0px 10px 10px 10px;
+}
+
+.filter_box_header {
+	font-size: 16pt;
+	margin: 10px;
+}
+
+.filter_category_header {
+	padding: 5px 0px 5px 5px;
+	background-color: black;
+	color: white;
 }
