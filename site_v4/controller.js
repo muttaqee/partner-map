@@ -20,7 +20,7 @@ $(document).ready(function() {
   function objectToString(obj, delimiter) {
     str = "";
     for (var key in obj) {
-      if (obj.hasOwnPropertty(key)) {
+      if (obj.hasOwnProperty(key)) {
         str += obj[key] + delimiter;
       }
     }
@@ -79,10 +79,12 @@ $(document).ready(function() {
         $option = $("<option></option>");
         optionString = "";
         for (var col in rows[i]) {
-          if (col == "id") {
-            $option.attr("value", rows[i][col]);
-          } else {
-            optionString += rows[i][col] + delimiter;
+          if (rows[i].hasOwnProperty(col)) {
+            if (col == "id") {
+              $option.attr("value", rows[i][col]);
+            } else {
+              optionString += rows[i][col] + delimiter;
+            }
           }
         }
         $option.html(optionString.slice(0, -1 * delimiter.length));
@@ -94,7 +96,7 @@ $(document).ready(function() {
   }
 
   // FIXME: test - Remove
-  $("body").on("change", "select", function() {
+  $("body").on("change", "#dropdown", function() {
     $("body").append("<p>"+$(this).val()+"<p>");
   });
 
@@ -121,6 +123,66 @@ $(document).ready(function() {
     return string.trim().replace(/ /g, "_");
   }
 
+  // Builds a select drop-down list
+  //
+  // Each list option corresponds to a row in the table
+  // Each option's value is set to the "id" field, if it exists
+  // The remaining fields are strung together to appear in the option content
+  //
+  // Example outcome:
+  //
+  // <select>
+  //   <option value="1">name - age - DOB</option>
+  //   ...
+  // </select>
+  function buildDropDownListFromTable(class_string, table_name) {
+    var $select = $("<select class=\"" + class_string + "\"></select>");
+    var result = selectQuery("*", table_name, "", function(result) {
+      var rows = JSON.parse(result);
+      var $option;
+      var optionString, delimiter = " - ";
+
+      var length = rows.length;
+      for (var i = 0; i < length; i += 1) {
+        $option = $("<option></option>");
+        optionString = "";
+        for (var col in rows[i]) {
+          if (rows[i].hasOwnProperty(col)) {
+            if (col == "id") {
+              $option.attr("value", rows[i][col]);
+            } else {
+              optionString += rows[i][col] + delimiter;
+            }
+          }
+        }
+        $option.html(optionString.slice(0, -1 * delimiter.length));
+        $select.append($option);
+      }
+    });
+    return $select;
+  }
+
+  function buildRatingFilterSetting($ratingFilterItem) {
+    var main_string = $("#" + $ratingFilterItem.attr("id") + " .main option:selected").html();
+    var rating_string = $("#" + $ratingFilterItem.attr("id") + " .rating option:selected").html();
+
+    var $setting = $("<div></div>");
+    $setting.attr("class", $ratingFilterItem.attr("class") + "_set");
+    // FIXME: Need to set id?
+
+    // "Clear filter" button
+    $clearButton = $("<input type=\"button\" class=\"clear_filter\" value=\"X\"></input>");
+    $setting.append($clearButton);
+
+    var main_string = $("#" + $ratingFilterItem.attr("id") + " .main option:selected").html();
+    var rating_string = $("#" + $ratingFilterItem.attr("id") + " .rating option:selected").html();
+    label_string = main_string + " (" + rating_string + ")";
+    $label = $("<label>" + label_string + "</label>");
+    $setting.append($label);
+
+    return $setting;
+  }
+
   // Build an element containing these three elements:
   // <Dropdown menu of options> <Dropdown menu of ratings> <Add filter button>
   //
@@ -130,45 +192,23 @@ $(document).ready(function() {
   // id_col_name       name of the id column for an option, if exists
   // option_col_names array of name(s) of columns to build options from
   // is_simple_rating  determines which table ratings are drawn from
-  function buildRatingFilterItem(id_str, options_table, id_col_name, option_col_names, is_simple_rating) {
+  function buildRatingFilterItem(id_str, options_table, is_simple_rating) {
     var $filterItem = $("<div class='rating_filter_item'></div>");
     $filterItem.attr("id", id_str);
 
-    // Select (drop-down menu) input: categories from db (must match db values)
-    /*
-    NOTE: Regardless of what is displayed to the user, the value stored and
-    checked against should be the technology id
-    */
-    var $optionSelect = $("<select></select>");
-    // Get rows from db
-    var options;
-    var select_str = arrayToString(options_cols, ", ");
-    options = queryResultsToStringArray(selectQuery(select_str, options_table, ""), " - "); // FIXME: ORDER BY technology_type?
-    //ids =
-    // Put rows into select option elements
-    var length = options.length;
-    for (var i = 0; i < length; i++) {
-      $option = $("<option value=\"" + /* ID */ + "\">" + options[i] + "</option>");
-      $optionSelect.append($option);
-    }
-    // Put options into select element
-    // Put select into filterItem element
+    // Main drop-down list
+    var $optionSelect = buildDropDownListFromTable("main", options_table);
     $filterItem.append($optionSelect);
 
-    // Select (drop-down menu) input: ratings from db (must match db values)
-    var $ratingSelect = $("<select></select>");
-    $ratingSelect.append($("<option value='all_ratings'>All ratings</option>"));
-    var rTable = is_simple_rating ? "ratings_simple" : "ratings";
-    var ratings = queryResultsToStringArray(selectQuery("*", rTable, ""), " - ");
-    var length = ratings.length;
-    for (var i = 0; i < length; i++) {
-      $ratingsSelect.append($("<option>" + ratings[0] + "</option>"));
-    }
-    $filterItem.append($ratingsSelect);
+    // Ratings drop-down list
+    var ratings_table = is_simple_rating ? "ratings_simple" : "ratings";
+    var $ratingSelect = buildDropDownListFromTable("rating", ratings_table);
+    $ratingSelect.prepend($("<option value=\"all_ratings\">All ratings</option>"));
+    $filterItem.append($ratingSelect);
 
     // "Add filter" button
-    $button = $("<input type=\"button\" value=\"add_filter\">+</input>");
-    $filterItem.append($button);
+    $addButton = $("<input type=\"button\" class=\"add_filter\" value=\"+\"></input>");
+    $filterItem.append($addButton);
 
     return $filterItem;
   }
@@ -189,18 +229,124 @@ $(document).ready(function() {
     return $filterItem;
   }
 
+  // Filter categories group like filter items (e.g. technologies or solutions)
+  // Child of: filter box
+  // Parent of: filter items (both checkbox and rating types)
+  function buildFilterCategory(id_str, name_str) {
+    var $category, $header;
+    $category = $("<div></div>");
+    $category.attr("id", id_str);
+    $category.attr("class", "filter_category");
+
+    $header = $("<div></div>");
+    $header.attr("class", "filter_category_header");
+    $header.html(name_str);
+    $header.appendTo($category);
+
+    return $category
+  }
+
+  // Filter boxes contain groups of filter items associated with one kind of
+  // resource (partners, consultants, or opportunities)
+  // Child of: filterPanel
+  // Parent of: filter categories
+  function buildFilterBox(id_str, label_str) {
+    var $filterBox, $header, $radioInput, $label;
+
+    $filterBox = $("<div></div>");
+    $filterBox.attr("id", id_str);
+    $filterBox.attr("class", "filter_box");
+
+    $header = $("<div></div>");
+    $header.attr("class", "filter_box_header");
+
+    var radioId = makeId(label_str);
+    $radioInput = $("<ipnut type=\"radio\"></input>");
+    $radioInput.attr("name", "resource_select");
+    $radioInput.attr("value", label_str.toLowerCase());
+    radioInput.attr("id", radioId);
+
+    $label = $("<label for=\"" + mradioId + "\">" + label_str + "</label>");
+
+    $header.append($radioInput);
+    $header.append($label);
+    $filterBox.append($header);
+
+    return $filterBox;
+  }
+
   function buildPartnerFilterBox() {
-    $partnerFilterBox = $("<div></div>");
-    $partnerFilterBox.attr("id", "partner_filter_box");
-    $partnerFilterBox.append(buildCategoryFilterItem()); // FIXME name of innermost function called
-    return $partnerFilterBox;
+    var $filterBox;
+
+    var $strengthFilterCategory;
+    var $technologyFilterCategory;
+    var $solutionFilterCategory;
+    var $miscFilterCategory;
+    var $verticalFilterCategory;
+    var $regionFilterCategory;
+
+    var str_fc_id = "strength_filter_category";
+    var tech_fc_id = "technology_filter_category";
+    var sol_fc_id = "solution_filter_category";
+    var misc_fc_id = "misc_filter_category";
+    var vert_fc_id = "vertical_filter_category";
+    var reg_fc_id = "region_filter_category";
+
+    $filterBox = buildFilterBox("partner_filter_box", "Partners");
+
+    $strengthFilterCategory = buildFilterCategory(str_fc_id, "Strengths");
+    $technologyFilterCategory = buildFilterCategory(tech_fc_id, "Technologies");
+    $solutionFilterCategory = buildFilterCategory(sol_fc_id, "Solutions");
+    $miscFilterCategory = buildFilterCategory(misc_fc_id, "Miscellaneous");
+    $verticalFilterCategory = buildFilterCategory(vert_fc_id, "Verticals");
+    $regionFilterCategory = buildFilterCategory(reg_fc_id, "Regions");
+
+    $strengthFilterCategory.append(buildRatingFilterItem(
+      "strength_filter_item",
+      "partner_strengths",
+      true
+    ));
+    $technologyFilterCategory.append(buildRatingFilterItem(
+      "technology_filter_item",
+      "technologies",
+      true
+    ));
+    $solutionFilterCategory.append(buildRatingFilterItem(
+      "solution_filter_item",
+      "solutions",
+      true
+    ));
+    $miscFilterCategory.append(buildRatingFilterItem(
+      "misc_filter_item",
+      "misc",
+      true
+    ));
+
+    // Look to "buildDropDownListFromTable" (starting line 138ish) for
+    // populating the vertical and region filters
+    var verticalFilters = [
+
+    ];
+
+    var regionFilters = [
+
+    ];
+
+    $filterBox.append($strengthFilterCategory);
+    $filterBod.append($technologyFilterCategory);
+    $filerBox.append($solutionFilterCategory);
+    $filterBox.append($miscFilterCategory);
+    // $filterBox.append($verticalFilterCategory); // Uncomment
+    // $filterBox.append($regionFilterCategory); // Uncomment
+
+    return $filterBox;
   }
 
   function buildView() {
     var $body;
 
     // Declare view elements
-    var $form, $searchPanel, $resultPanel;
+    var $form, $filterPanel, $resultPanel;
 
     var $oppFilterBox, $partnerFilterBox, $consultantFilterBox;
 
@@ -219,9 +365,9 @@ $(document).ready(function() {
     $form = $("<form></form>"); // FIXME: If using >1 form, change this (more specific)
     // $form.appendTo($body);
 
-    $searchPanel = $("<div></div>");
-    $searchPanel.attr("id", "search_panel");
-    // $searchPanel.appendTo($form);
+    $filterPanel = $("<div></div>");
+    $filterPanel.attr("id", "search_panel");
+    // $filterPanel.appendTo($form);
 
     $resultPanel = $("<div></div>");
     $resultPanel.attr("id", "result_panel");
@@ -229,11 +375,11 @@ $(document).ready(function() {
 
     $oppFilterBox = $("<div></div>");
     $oppFilterBox.attr("id", "opp_filter_box");
-    // $oppFilterBox.appendTo($searchPanel);
+    // $oppFilterBox.appendTo($filterPanel);
 
     $partnerFilterBox = $("<div></div>");
     $partnerFilterBox.attr("id", "partner_filter_box");
-    // $partnerFilterBox.appendTo($searchPanel);
+    // $partnerFilterBox.appendTo($filterPanel);
 
     $consultantFilterBox = $("<div></div>");
     $consultantFilterBox.attr("id", "consultant_filter_box");
@@ -273,20 +419,31 @@ $(document).ready(function() {
     filterBoxes = [$oppFilterBox, $partnerFilterBox, $consultantFilterBox];
     length = filterBoxes.length;
     for (var i = 0; i < length; i++) {
-      filterBoxes[i].appendTo($searchPanel);
+      filterBoxes[i].appendTo($filterPanel);
     }
 
-    $searchPanel.appendTo($form);
+    $filterPanel.appendTo($form);
     $resultPanel.appendTo($form);
     $form.appendTo($body);
   }
+
+  // Listener
+  $("body").on("click", ".rating_filter_item .add_filter", function() {
+    // FIXME: check if filter already set (check data structure here, in controller)
+    $filterItem = $(this).parent();
+    $filterItem.before(buildRatingFilterSetting($filterItem));
+  });
 
   // Program start
   function execute() {
     alert("Executing...");
     //buildView(); // FIXME: Uncomment
     // testQuery();
-    testBuildSelect("technologies");
+    var listType = "technologies";
+    $ratingFilterItem = buildRatingFilterItem(listType, listType, true);
+    $("body").append($ratingFilterItem);
+    $("body").append(buildRatingFilterSetting($ratingFilterItem));
+    $("body").append(buildPartnerFilterBox());
     // Listen for view changes
   }
 
