@@ -1,6 +1,68 @@
 /*jslint browser: true*/
 /*global $, jQuery, alert*/
 
+// Checkbox filter
+function checkboxFilter(id_str, value_str, label_str) {
+  this.id = id_str;
+  this.class = "checkbox_filter_item";
+  this.value = value_str;
+  this.domElement = buildCheckboxFilterItem(id_str, value_str, label_str);
+}
+
+// Rating filter
+function ratingFilter(id_str, value_table, rating_str, is_simple_bool) {
+  this.id = id_str;
+  this.class = "rating_filter_item";
+  // this.value = value_str; // FIXME LEFT OFF HERE W/ PARAMS
+  this.is_simple = is_simple_rating;
+  this.rating = rating_str;
+  this.domElement = buildRatingFilterItem(id_str,)
+}
+
+// Rating filter setting (created from an  existing rating filter object)
+function ratingFilterSetting(id_str, ratingFilter_obj) {
+  this.id = ratingFilter_obj.id + "_setting";
+  this.class = "rating_filter_item_setting";
+  this.value = ratingFilter_obj.value;
+  this.rating = ratingFilter_obj.rating;
+  this.domElement = buildRatingFilterSetting(id_str, ratingFilter_obj.domElement); // FIXME change this ctor & params
+}
+
+// Filter category: contains a group of filters
+function filterCategory(id_str, name_str) {
+  this.id = id_str;
+  this.name = name_str;
+  this.domElement = buildFilterCategory(id_str, name_str);
+
+  this.checkboxFilters = [];
+  this.ratingFilters = [];
+  this.ratingFilterSettings = [];
+
+  this.addFilter = function(filter) {
+    if (filter instanceof checkboxFilter) {
+      checkboxFilters.push(filter);
+    } else if (filter instanceof ratingFilter) {
+      ratingFilters.push(filter);
+    } else if (filter instanceof ratingFilterSetting) {
+      ratingFilterSettings.push(filter);
+    }
+  }
+
+  this.getCheckboxFilters = function() {
+    return this.checkboxFilters;
+  }
+
+  this.getRatingFilters = function() {
+    return this.ratingFilters;
+  }
+
+  this.getRatingFilterSettings = function() {
+    return this.ratingFilterSettings;
+  }
+}
+
+var partnerFilterCategories = []; // Push arrays of filter objects into this
+
 $(document).ready(function() {
 
   var dbname = "partner_map_db";
@@ -167,7 +229,7 @@ $(document).ready(function() {
     var rating_string = $("#" + $ratingFilterItem.attr("id") + " .rating option:selected").html();
 
     var $setting = $("<div></div>");
-    $setting.attr("class", $ratingFilterItem.attr("class") + "_set");
+    $setting.attr("class", $ratingFilterItem.attr("class") + "_setting");
     // FIXME: Need to set id?
 
     // "Clear filter" button
@@ -296,21 +358,23 @@ $(document).ready(function() {
     ));
 
     // Associated partners filter category // FIXME: LEFT OFF HERE 6/24
-    selectQuery(
-      "partners.official_name AS name, partners.id AS id",
-      "partners, consultant_partner_junction",
-      "partners.id = consultant_partner_junction.partner_id GROUP BY partners.official_name",
-      function(result) {
-        var $select = $("<select class=\"main\"></select>");
-        var rows = JSON.parse(result);
-        var $filterItem, id_str, val_str, label_str;
-        for (var i = 0; i < rows.length; i += 1) {
-          id_str = val_str = rows[i]["id"];
-          label_str = rows[i]["name"];
-          $filterItem = build
-        }
-      }
-    );
+
+    // selectQuery(
+    //   "partners.official_name AS name, partners.id AS id",
+    //   "partners, consultant_partner_junction",
+    //   "partners.id = consultant_partner_junction.partner_id GROUP BY partners.official_name",
+    //   function(result) {
+    //     var $select = $("<select class=\"main\"></select>");
+    //     var rows = JSON.parse(result);
+    //     var $filterItem, id_str, val_str, label_str;
+    //     for (var i = 0; i < rows.length; i += 1) {
+    //       id_str = val_str = rows[i]["id"];
+    //       label_str = rows[i]["name"];
+    //       $filterItem = build // FIXME: can't pass build...() the right input?
+    //     }
+    //   }
+    // );
+
     // $partnerFilterCategory.append(buildRatingFilterItem(
     //   "partner_filter_item",
     //   "consultant_partner_junction",
@@ -449,12 +513,21 @@ $(document).ready(function() {
     $form.appendTo($body);
   }
 
-  // Listener
-  $("body").on("click", ".rating_filter_item .add_filter", function() {
+  /* *** LISTENERS *** */
+
+  var $body = $("body");
+
+  // Rating filter item listener
+  $body.on("click", ".rating_filter_item .add_filter", function() {
     // FIXME: check if filter already set (check data structure here, in controller)
+    // FIXME: This should affect model
     $filterItem = $(this).parent();
     $filterItem.before(buildRatingFilterSetting($filterItem));
   });
+
+  // Filter form change listener: triggers query; displays results
+  // Should draw filters/query details from some model, not the DOM
+  // $body.on(); // FIXME: left off here II
 
   // Program start
   function execute() {
