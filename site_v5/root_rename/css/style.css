@@ -1,0 +1,71 @@
+* {
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+html, body {
+	background-color: white;
+	border: 1px solid red;
+	min-height: 100%; /* NOTE: Appears to apply only to html (works well) */
+	height: auto;
+	width: 100%;
+	padding: 0;
+	margin: 0;
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+	background-color: salmon;
+}
+
+h1, h2, h3, h4, h5, h6, p {
+	margin: 0;
+	padding: 0;
+}
+
+ol, ul, li {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+
+form {
+	background-color: firebrick;
+  width: 100%;
+	height: auto;
+}
+
+#filter_panel {
+	background-color: lightgrey;
+	border: 1px solid black;
+	display: inline;
+	float: left;
+	width: 35%;
+	height: 100%;
+}
+
+#result_panel {
+	background-color: steelblue;
+	border: 1px solid chartreuse;
+	display: inline;
+	float: left;
+	width: 65%;
+	height: 100%;
+}
+
+.filter_category {
+	background-color: white;
+	margin: 0px 10px 10px 10px;
+}
+
+.filter_box_header {
+	font-size: 16pt;
+	margin: 10px;
+}
+
+.filter_category_header {
+	padding: 5px 0px 5px 5px;
+	background-color: black;
+	color: white;
+}
