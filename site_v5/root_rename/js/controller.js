@@ -1,11 +1,27 @@
 /*jslint browser: true*/
 /*global $, jQuery, alert*/
-var selectScript = "../servercode/select.php";
-var insertScript = "../servercode/insert.php"; // FIXME: script needs to be written
-var deleteScript = "../servercode/delete.php"; // FIXME: script needs to be written
+
+// FIME: Pull file paths from config.php file instead
+var selectScript = "js/../servercode/select.php";
+var insertScript = "js/../servercode/insert.php"; // FIXME: script needs to be written
+var deleteScript = "js/../servercode/delete.php"; // FIXME: script needs to be written
 
 //------------------------------------------------------------------------------
-// HELPER FUNCTIONS
+// MVC Abstraction // FIXME: Remove?
+//------------------------------------------------------------------------------
+
+var v = function view() {
+  function render(object, to) {
+    // FIXME: Remove? Continue?
+  }
+};
+
+var m = function model() {
+  
+};
+
+//------------------------------------------------------------------------------
+// HELPER/UTILITY FUNCTIONS
 //------------------------------------------------------------------------------
 
 // Helper: query db with SELECT <...> FROM <...> WHERE <...>
@@ -25,7 +41,7 @@ function selectQuery(select_str, from_str, where_str, callback) {
 
 // Helper: replace " " with "_" (for creating element IDs) // FIXME: Remove - not needed?
 function makeId(string) {
-  return string.trim().replace(/ /g, "_");
+  return string.trim().replace(/ /g, "_").toLowerCase();
 }
 
 // Helper: Turn array into string of values with delimiter
@@ -49,177 +65,28 @@ function objectToString(obj, delimiter) {
   return str.slice(0, -1 * delimiter.length);
 }
 
-//------------------------------------------------------------------------------
-// OBJECTS (DOM elements [use templates?], results [each entity], ...)
-//------------------------------------------------------------------------------
-
-// Generic view object // FIXME: might remove
-function view(id_str, class_str, value_str, header_str, parent_obj) {
-  this.id = id_str;
-  this.class = class_str;
-  this.value = value_str;
-  this.parent = parent_obj;
-  this.children = new Array();
-  
-  this.addChild = function(child) {
-    this.children.push(child);
-  };
-  
-  this.getParent = function() {
-    return parent_obj;
-  };
-}
-
-// Checkbox filter
-function checkboxFilter(id_str, value_str, label_str) {
-  this.id = id_str;
-  this.class = "checkbox_filter_item";
-  this.value = value_str;
-  this.domElement = buildCheckboxFilterItem(id_str, value_str, label_str);
-}
-
-// Rating filter
-function ratingFilter(id_str, value_table, rating_str, is_simple_bool) {
-  this.id = id_str;
-  this.class = "rating_filter_item";
-  // this.value = value_str; // FIXME LEFT OFF HERE W/ PARAMS
-  this.is_simple = is_simple_bool;
-  this.rating = rating_str;
-  this.domElement = buildRatingFilterItem(id_str, value_table, is_simple_bool);
-}
-
-// Rating filter setting (created from an  existing rating filter object)
-function ratingFilterSetting(id_str, ratingFilter_obj) {
-  this.id = ratingFilter_obj.id + "_setting";
-  this.class = "rating_filter_item_setting";
-  this.value = ratingFilter_obj.value;
-  this.rating = ratingFilter_obj.rating;
-  this.domElement = buildRatingFilterSetting(id_str, ratingFilter_obj.domElement); // FIXME: change this ctor & params
-}
-
-// Filter category: contains a group of filters
-function filterCategory(id_str, name_str) {
-  this.id = id_str;
-  this.name = name_str;
-  this.domElement = buildFilterCategory(id_str, name_str);
-
-  this.checkboxFilters = [];
-  this.ratingFilters = [];
-  this.ratingFilterSettings = [];
-
-  this.addFilter = function(filter) {
-    if (filter instanceof checkboxFilter) {
-      checkboxFilters.push(filter);
-    } else if (filter instanceof ratingFilter) {
-      ratingFilters.push(filter);
-    } else if (filter instanceof ratingFilterSetting) {
-      ratingFilterSettings.push(filter);
-    }
-  };
-
-  this.getCheckboxFilters = function() {
-    return this.checkboxFilters;
-  };
-
-  this.getRatingFilters = function() {
-    return this.ratingFilters;
-  };
-
-  this.getRatingFilterSettings = function() {
-    return this.ratingFilterSettings;
-  };
-}
-
-//------------------------------------------------------------------------------
-// BUILD
-//------------------------------------------------------------------------------
-
-//------------------------------------------------------------------------------
-// RENDER (to View/DOM)
-//------------------------------------------------------------------------------
-
-//------------------------------------------------------------------------------
-// EVENT HANDLING
-//------------------------------------------------------------------------------
-
-var partnerFilterCategories = []; // Push arrays of filter objects into this
-
-$(document).ready(function() {
-
-  // Convert rows to an array in the form:
-  // ["row0coll0< del >row0col1< del >...", ..., "rowNcol0< del >rowNcol1< del >..."]
-  // where < del > is a delimiter (e.g. comma or other string)
-  // EXAMPLE:
-  // If there are M rows, N columns, and the delimiter is ", "
-  // array[0]: "<row 0 col 0>, <row 0 col 1>, ..., <row 0 col N>"
-  // array[1]: "<row 1 col 0>, <row 1 col 1>, ..., <row 1 col N>"
-  // ...
-  // array[M]: "<row M col 0>, <row M col 1>, ..., <row M col N>"
-  function queryResultsToStringArray(results, delimiter) {
-    var obj = JSON.parse(results);
-    var length = obj.length;
-    var array = [];
-    for (var i = 0; i < length; i++) {
-      array[i] = objectToString(obj[i], delimiter);
-    }
-    return array;
+// Helper: Convert rows to an array in the form:
+// ["row0coll0< del >row0col1< del >...", ..., "rowNcol0< del >rowNcol1< del >..."]
+// where < del > is a delimiter (e.g. comma or other string)
+// EXAMPLE:
+// If there are M rows, N columns, and the delimiter is ", "
+// array[0]: "<row 0 col 0>, <row 0 col 1>, ..., <row 0 col N>"
+// array[1]: "<row 1 col 0>, <row 1 col 1>, ..., <row 1 col N>"
+// ...
+// array[M]: "<row M col 0>, <row M col 1>, ..., <row M col N>"
+function rowsToStringArray(results, delimiter) {
+  var obj = JSON.parse(results);
+  var length = obj.length;
+  var array = [];
+  for (var i = 0; i < length; i++) {
+    array[i] = objectToString(obj[i], delimiter);
   }
+  return array;
+}
 
-
-  /* *** FIXME: BEGIN TEST AREA *** */
-
-  // FIXME: TEST
-  function testQuery() {
-    var $body = $("body");
-    var result = selectQuery("*", "technologies", "", function(d) {
-      $body.append("<p>"+d+"</p>")
-
-      d2 = JSON.parse(d);
-      for (var i = d2.length - 1; i >= 0; i -= 1) {
-        for (var col in d2[i]) {
-          $body.prepend($("<p>" + d2[i][col] + "</p>"));
-        }
-      }
-      // $body.append("<pre>"+d3+"</pre>")
-    });
-  }
-
-  // FIXME: Test. Create options where id stored in value
-  function testBuildSelect(options_table_name) {
-    var $body = $("body");
-    var $select = $("<select id=\"dropdown\"></select>");
-    var result = selectQuery("*", options_table_name, "", function(result) {
-      var rows = JSON.parse(result);
-      var $option;
-      var optionString, delimiter = " - ";
-
-      var length = rows.length;
-      for (var i = 0; i < length; i += 1) {
-        $option = $("<option></option>");
-        optionString = "";
-        for (var col in rows[i]) {
-          if (rows[i].hasOwnProperty(col)) {
-            if (col == "id") {
-              $option.attr("value", rows[i][col]);
-            } else {
-              optionString += rows[i][col] + delimiter;
-            }
-          }
-        }
-        $option.html(optionString.slice(0, -1 * delimiter.length));
-        $select.append($option);
-      }
-
-      $body.append($select);
-    });
-  }
-
-  // FIXME: test - Remove
-  $("body").on("change", "#dropdown", function() {
-    $("body").append("<p>"+$(this).val()+"<p>");
-  });
-
-  /* *** FIXME: END TEST AREA *** */
+//------------------------------------------------------------------------------
+// DOM element builders
+//------------------------------------------------------------------------------
 
   // Builds a select drop-down list
   //
@@ -235,7 +102,7 @@ $(document).ready(function() {
   // </select>
   function buildDropDownListFromTable(class_string, table_name) {
     var $select = $("<select class=\"" + class_string + "\"></select>");
-    var result = selectQuery("*", table_name, "", function(result) {
+    selectQuery("*", table_name, "", function(result) {
       var rows = JSON.parse(result);
       var $option;
       var optionString, delimiter = " - ";
@@ -260,13 +127,14 @@ $(document).ready(function() {
     return $select;
   }
 
-  function buildRatingFilterSetting($ratingFilterItem) {
+  // Build a filter setting from a rating filter item // FIXME: reword comment
+  function buildRatingFilterSetting(id_str, $ratingFilterItem) {
     var main_string = $("#" + $ratingFilterItem.attr("id") + " .main option:selected").html();
     var rating_string = $("#" + $ratingFilterItem.attr("id") + " .rating option:selected").html();
 
     var $setting = $("<div></div>");
+    $setting.attr("id", id_str);
     $setting.attr("class", $ratingFilterItem.attr("class") + "_setting");
-    // FIXME: Need to set id?
 
     // "Clear filter" button
     $clearButton = $("<input type=\"button\" class=\"clear_filter\" value=\"X\"></input>");
@@ -305,14 +173,14 @@ $(document).ready(function() {
     $filterItem.append($ratingSelect);
 
     // "Add filter" button
-    $addButton = $("<input type=\"button\" class=\"add_filter\" value=\"+\"></input>");
+    var $addButton = $("<input type=\"button\" class=\"add_filter\" value=\"+\"></input>");
     $filterItem.append($addButton);
 
     return $filterItem;
   }
 
   // Create a checkbox and label filter element (e.g. for VERTICALS and REGIONS)
-  function buildCheckboxFilterItem(id_str, value_str, label_str) {
+  function buildCheckboxFilterItem(id_str, value_str) {
     var $filterItem = $("<div class='checkbox_filter_item'></div>");
     $filterItem.attr("id", id_str);
 
@@ -331,6 +199,7 @@ $(document).ready(function() {
   // Child of: filter box
   // Parent of: filter items (both checkbox and rating types)
   function buildFilterCategory(id_str, name_str) {
+    alert("build filter category"); // FIXME: Remove
     var $category, $header;
     $category = $("<div></div>");
     $category.attr("id", id_str);
@@ -372,6 +241,283 @@ $(document).ready(function() {
 
     return $filterBox;
   }
+
+//------------------------------------------------------------------------------
+// OBJECTS (DOM elements [use templates?], results [each entity], ...)
+//------------------------------------------------------------------------------
+
+// Generic view object // FIXME: might remove
+function viewObject(id_str, class_str, value_str, header_str, parent_obj) {
+  this.id = id_str;
+  this.class = class_str;
+  this.value = value_str;
+  this.parent = parent_obj;
+  this.children = new Array();
+  
+  this.addChild = function(child) {
+    this.children.push(child);
+  };
+  
+  this.getParent = function() {
+    return parent_obj;
+  };
+}
+
+// Checkbox filter
+function checkboxFilter(id_str, value_str) {
+  this.id = id_str;
+  this.class = "checkbox_filter_item";
+  this.value = value_str;
+  this.domElement = buildCheckboxFilterItem(this.id, this.value);
+}
+
+// Rating filter
+function ratingFilter(id_str, value_table, is_simple_bool) {
+  this.id = id_str;
+  this.class = "rating_filter_item";
+  // this.value = value_str; // FIXME LEFT OFF HERE W/ PARAMS
+  this.is_simple = is_simple_bool;
+  this.domElement = buildRatingFilterItem(this.id, value_table, this.is_simple);
+}
+
+// Rating filter setting (created from an  existing rating filter object)
+function ratingFilterSetting(ratingFilter_obj, rating_str) {
+  this.id = ratingFilter_obj.id + "_setting";
+  this.class = "rating_filter_item_setting";
+  this.value = ratingFilter_obj.value;
+  this.rating = rating_str;
+  this.domElement = buildRatingFilterSetting(this.id, ratingFilter_obj.domElement); // FIXME: change this ctor & params - need to pass rating directly from here, not rely on domElement
+}
+
+// Filter category: contains a set of filters
+function filterCategory(id_str, name_str) {
+  this.id = id_str;
+  this.name = name_str;
+  this.domElement = buildFilterCategory(this.id, this.name);
+  
+  this.checkboxFilters = [];
+  this.ratingFilters = [];
+  this.ratingFilterSettings = [];
+
+  this.addFilter = function(f) {
+    if (f instanceof checkboxFilter) {
+      this.checkboxFilters.push(f);
+      this.domElement.append(f.domElement);
+    } else if (f instanceof ratingFilter) {
+      this.ratingFilters.push(f);
+      alert(this.domElement);
+      this.domElement.append(f.domElement);
+    } else if (f instanceof ratingFilterSetting) {
+      this.ratingFilterSettings.push(f);
+      this.domElement.append(f.domElement);
+    }
+  };
+  
+  this.removeFilterSetting = function(f) {
+    if (f instanceof ratingFilterSetting) {
+      f.domElement.remove(); // FIXME: This is a VIEW thing
+      this.ratingFilterSettings.splice(this.ratingFilterSettings.indexOf(f), 1);
+    }
+  };
+
+  this.getCheckboxFilters = function() {
+    return this.checkboxFilters;
+  };
+
+  this.getRatingFilters = function() {
+    return this.ratingFilters;
+  };
+
+  this.getRatingFilterSettings = function() {
+    return this.ratingFilterSettings;
+  };
+}
+
+// Filter box: contains filter categories
+function filterBox(id_str, label_str) {
+  this.id = id_str;
+  this.class = "filter_box";
+  this.domElement = buildFilterBox(this.id, label_str);
+  
+  this.filterCategories = [];
+  
+  this.addFilterCategory = function(fc) {
+    if (fc instanceof filterCategory) {
+      this.filterCategories.push(fc);
+      this.domElement.append(fc.domElement);
+    }
+  };
+}
+
+//------------------------------------------------------------------------------
+// BUILD (DOM elements)
+//------------------------------------------------------------------------------
+
+// Construct objects and render to View
+function build() {
+  
+  var filterBoxes = {
+    partners: new filterBox("partner_filter_box", "Partners"),
+    consultants: new filterBox("consultant_filter_box", "Consultants"),
+    opportunities: new filterBox("opp_filter_box", "Opportunities")
+  };
+  
+  alert("Partners filter box html: " + filterBoxes.partners.domElement.html()); // FIXME: Remove
+  
+  var par_categories = {
+    strengths: {
+      object: new filterCategory("strength_filter_category", "Strengths"),
+      assoc_table: "partner_strengths"
+    },
+    technologies: {
+      object: new filterCategory("technology_filter_category", "Technologies"),
+      assoc_table: "technologies"
+    },
+    solutions: {
+      object: new filterCategory("solution_filter_category", "Solutions"),
+      assoc_table: "solutions"
+    },
+    misc: {
+      object: new filterCategory("misc_filter_category", "Misc"),
+      assoc_table: "misc"
+    },
+    verticals: {
+      object: new filterCategory("vertical_filter_category", "Verticals"),
+      assoc_table: "verticals"
+    },
+    regions: {
+      object: new filterCategory("region_filter_category", "Regions"),
+      assoc_table: "geographical_regions" // FIXME: Update to "regions" once db similarly updated
+    }
+  };
+  var filter;
+  
+  filter = new ratingFilter("str_filter", par_categories.strengths.assoc_table, true);
+  alert("Here II"); // FIXME: Remove
+  par_categories.strengths.object.addFilter(filter);
+  
+  filter = new ratingFilter("tech_filter", par_categories.technologies.assoc_table, true);
+  par_categories.technologies.object.addFilter(filter);
+  
+  filter = new ratingFilter("sol_filter", par_categories.solutions.assoc_table, true);
+  par_categories.solutions.object.addFilter(filter);
+  
+  filter = new ratingFilter("misc_filter", par_categories.misc.assoc_table, true);
+  par_categories.misc.object.addFilter(filter);
+  
+  // FIXME: LEFT OFF. FIX 410-414. Add all checkbox filters. Refer to old method.
+  
+  filter = new checkboxFilter("vert_filter", par_categories.verticals.assoc_table, true);
+  par_categories.verticals.object.addFilter(filter);
+  
+  filter = new checkboxFilter("reg_filter", par_categories.regions.assoc_table, true);
+  par_categories.regions.object.addFilter(filter);
+  
+  alert("Here III"); // FIXME: Remove
+  for (var cat in par_categories) {
+    filterBoxes.partners.addFilterCategory(par_categories[cat].object);
+  }
+  alert("Here IV: " + filterBoxes.partners.domElement.html()); // FIXME: Remove
+  
+  // var consultantFilterCategories = 
+  // var opportunityFilterCategories = 
+
+//  var delimiter = " - ";
+//  var rows;
+//  for (var cat in par_categories) {
+//    selectQuery("*", par_categories[cat].assoc_table, "", function (data) {
+//      rows = data;
+//      rows = rowsToStringArray(rows, delimiter);
+//      alert("Rows: " + rows);
+//      for (var i = 0; i < rows.length; i += 1) {
+//        par_categories[cat].object.addFilter(rows[i]);
+//      }
+//      filterBoxes.partners.addFilterCategory(par_categories[cat].object);
+//    });
+//  }
+  alert("Done"); // FIXME: Remove
+  
+  var $body = $("body");
+  var $form = $("<form></form>"); // FIXME: If using >1 form, change this (more specific)
+  $form.appendTo($body);
+  
+  var $filterPanel = $("<div></div>");
+  $filterPanel.attr("id", "filter_panel");
+  $filterPanel.appendTo($form);
+
+  var $resultPanel = $("<div></div>");
+  $resultPanel.attr("id", "result_panel");
+  $resultPanel.appendTo($form);
+
+  filterBoxes.partners.domElement.appendTo($filterPanel);
+  
+  alert("Body html: " + $("body").html()); // FIXME: Remove
+}
+
+//------------------------------------------------------------------------------
+// RENDER (to View/DOM)
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+// EVENT HANDLING
+//------------------------------------------------------------------------------
+
+$(document).ready(function() {
+
+  /* *** FIXME: BEGIN TEST AREA *** */
+
+//  // FIXME: TEST
+//  function testQuery() {
+//    var $body = $("body");
+//    var result = selectQuery("*", "technologies", "", function(d) {
+//      $body.append("<p>"+d+"</p>")
+//
+//      d2 = JSON.parse(d);
+//      for (var i = d2.length - 1; i >= 0; i -= 1) {
+//        for (var col in d2[i]) {
+//          $body.prepend($("<p>" + d2[i][col] + "</p>"));
+//        }
+//      }
+//      // $body.append("<pre>"+d3+"</pre>")
+//    });
+//  }
+//
+//  // FIXME: Test. Create options where id stored in value
+//  function testBuildSelect(options_table_name) {
+//    var $body = $("body");
+//    var $select = $("<select id=\"dropdown\"></select>");
+//    var result = selectQuery("*", options_table_name, "", function(result) {
+//      var rows = JSON.parse(result);
+//      var $option;
+//      var optionString, delimiter = " - ";
+//
+//      var length = rows.length;
+//      for (var i = 0; i < length; i += 1) {
+//        $option = $("<option></option>");
+//        optionString = "";
+//        for (var col in rows[i]) {
+//          if (rows[i].hasOwnProperty(col)) {
+//            if (col == "id") {
+//              $option.attr("value", rows[i][col]);
+//            } else {
+//              optionString += rows[i][col] + delimiter;
+//            }
+//          }
+//        }
+//        $option.html(optionString.slice(0, -1 * delimiter.length));
+//        $select.append($option);
+//      }
+//
+//      $body.append($select);
+//    });
+//  }
+//
+//  // FIXME: test - Remove
+//  $("body").on("change", "#dropdown", function() {
+//    $("body").append("<p>"+$(this).val()+"<p>");
+//  });
+
+  /* *** FIXME: END TEST AREA *** */
 
   function buildConsultantFilterBox() {
     var $filterBox;
@@ -513,14 +659,16 @@ $(document).ready(function() {
   }
 
   function buildView() {
+    /* Declare some view elements */
+    
     var $body;
-
-    // Declare view elements
+    
     var $form, $filterPanel, $resultPanel;
 
     var $oppFilterBox, $partnerFilterBox, $consultantFilterBox;
 
-    // Instantiate view elements
+    /* Instantiate some view elements */
+    
     $body = $("body");
 
     $form = $("<form></form>"); // FIXME: If using >1 form, change this (more specific)
@@ -557,7 +705,7 @@ $(document).ready(function() {
   $body.on("click", ".rating_filter_item .add_filter", function() {
     // FIXME: check if filter already set (check data structure here, in controller)
     // FIXME: This should affect model
-    $filterItem = $(this).parent();
+    var $filterItem = $(this).parent();
     $filterItem.before(buildRatingFilterSetting($filterItem));
   });
 
@@ -568,8 +716,8 @@ $(document).ready(function() {
   // Program start
   function execute() {
     alert("Executing...");
-    buildView();
-    // testQuery();
+    //buildView(); // FIXME: Should be build() -> builds model and renders
+    build();
     // Listen for view changes
   }
 
