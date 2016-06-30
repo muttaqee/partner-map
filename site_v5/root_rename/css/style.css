@@ -69,3 +69,23 @@ form {
 	background-color: black;
 	color: white;
 }
+
+input[class="rating_filter_trigger"] {
+  /* FIXME: Modify or remove this block */
+  border-radius: 4px;
+/*  border: 1px solid black;
+  text-decoration: none;
+  background-color: white;*/
+}
+
+input[class="clear_filter"] {
+  /*  text-shadow: 0px 0px 1px black;*/
+  /*  box-shadow: inset 0px 0px 3px black;*/
+  border: 1px solid grey;
+  border-radius: 4px;
+  margin: 0px 5px 0px 5px;
+}
+
+.checkbox_filter_item input[class="filter_checkbox"] {
+  opacity: 0.5;
+}
