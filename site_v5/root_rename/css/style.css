@@ -87,5 +87,5 @@ input[class="clear_filter"] {
 }
 
 .checkbox_filter_item input[class="filter_checkbox"] {
-  opacity: 0.5;
+  /*opacity: 0.5;*/
 }
