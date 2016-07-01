@@ -18,9 +18,46 @@ var v = function view() {
 
 var m = {
   // FIXME: Remove? Continue?
+  
+  filter_boxes: [],
+  
+  filter_categories: {
+    partners: [],
+    opportunities: [],
+    consultants: []
+  },
+  
   rating_filters: [],
   rating_filter_settings: [],
   checkbox_filters: [],
+  
+  addFilterBox: function(b) {
+    if (b instanceof filterBox) {
+      this.filter_boxes.push(b);
+    }
+  },
+  
+  removeFilterBox: function(b) {
+    if (b instanceof filterBox) {
+      // FIXME: Implement or remove?
+    }
+  },
+  
+  expandFilterBox: function(b) {
+    if (b instanceof filterBox) {
+      // FIXME: Implement
+    }
+  },
+  
+  collapseFilterBox: function(b) {
+    if (b instanceof filterBox) {
+      // FIXME: Implement
+    }
+  },
+  
+  addFilterCategory: function(c) {
+    // FIXME: Implement
+  },
 
   addFilter: function(f) {
     if (f instanceof ratingFilter) {
@@ -338,23 +375,25 @@ function ratingFilter(id_str, value_table, is_simple_bool) {
   this.domElement = buildRatingFilterItem(this.id, value_table, this.is_simple, this.trigger_class);
 }
 ratingFilter.prototype.class = "rating_filter_item";
-ratingFilter.prototype.trigger_class = "rating_filter_trigger";
+ratingFilter.prototype.trigger_class = "rating_filter_trigger"; // Inject dependency here
 
 // Rating filter setting (created from an  existing rating filter object)
 function ratingFilterSetting(ratingFilter_obj) {
   this.id = ratingFilter_obj.id + "_setting";
-  this.class = "rating_filter_item_setting";
 
   this.value = ratingFilter_obj.domElement.find(".main option:selected").html();
   this.rating = ratingFilter_obj.domElement.find(".rating option:selected").html();
 
   this.domElement = buildRatingFilterSetting(this.id, ratingFilter_obj.domElement); // FIXME: change this ctor & params - need to pass rating directly from here, not rely on domElement
 }
+ratingFilterSetting.prototype.class = "rating_filter_item_setting";
+ratingFilterSetting.prototype.clear_class = "clear_filter";
 
 // Filter category: contains a set of filters
-function filterCategory(id_str, name_str) {
+function filterCategory(id_str, name_str, table_str) {
   this.id = id_str;
   this.name = name_str;
+  this.table = table_str;
   this.domElement = buildFilterCategory(this.id, this.name);
 
   this.checkboxFilters = [];
@@ -422,31 +461,34 @@ function build() {
     consultants: new filterBox("consultant_filter_box", "Consultants"),
     opportunities: new filterBox("opp_filter_box", "Opportunities")
   };
+  for (var box in filterBoxes) {
+    m.addFilterBox(filterBoxes[box]);
+  }
 
   var par_categories = {
     strengths: {
-      object: new filterCategory("strength_filter_category", "Strengths"),
-      assoc_table: "partner_strengths"
+      assoc_table: "partner_strengths",
+      object: new filterCategory("strength_filter_category", "Strengths", "partner_strengths")
     },
     technologies: {
-      object: new filterCategory("technology_filter_category", "Technologies"),
-      assoc_table: "technologies"
+      assoc_table: "technologies",
+      object: new filterCategory("technology_filter_category", "Technologies", "technologies")
     },
     solutions: {
-      object: new filterCategory("solution_filter_category", "Solutions"),
-      assoc_table: "solutions"
+      assoc_table: "solutions",
+      object: new filterCategory("solution_filter_category", "Solutions", "solutions")
     },
     misc: {
-      object: new filterCategory("misc_filter_category", "Misc"),
-      assoc_table: "misc"
+      assoc_table: "misc",
+      object: new filterCategory("misc_filter_category", "Misc", "misc")
     },
     verticals: {
-      object: new filterCategory("vertical_filter_category", "Verticals"),
-      assoc_table: "verticals"
+      assoc_table: "verticals",
+      object: new filterCategory("vertical_filter_category", "Verticals", "verticals")
     },
     regions: {
-      object: new filterCategory("region_filter_category", "Regions"),
-      assoc_table: "geographical_regions" // FIXME: Update to "regions" once db similarly updated
+      assoc_table: "geographical_regions", // FIXME: Update to "regions" once db similarly updated
+      object: new filterCategory("region_filter_category", "Regions", "geographical_regions")
     }
   };
 
@@ -687,7 +729,7 @@ $(document).ready(function() {
   $body.on("click", "." + ratingFilter.prototype.trigger_class, function() {
     var $trigger_element = $(this).parent();
 
-    // FIXME: Remove
+
     var trig_filt = m.findFilterById($trigger_element.attr("id"));
     var setting = new ratingFilterSetting(trig_filt);
     m.addFilter(setting);
@@ -695,6 +737,20 @@ $(document).ready(function() {
 
     // FIXME: Remove
     alert(m.rating_filter_settings[0].value + ", " + m.rating_filter_settings[0].rating);
+  });
+  
+  $body.on("click", "." + ratingFilterSetting.prototype.clear_class, function() {
+    var $setting = $(this).parent();
+    m.removeFilter(m.findFilterById($setting.attr("id")));
+    $setting.remove();
+    
+    // FIXME: Remove
+    var arr = m.rating_filter_settings;
+    var s = "";
+    for (var i = arr.length-1; i >= 0; i -= 1) {
+      s += arr[i].value + ", " + arr[i].rating + "\n";
+    }
+    alert("Settings:\n" + s);
   });
 
   // Checkbox filters
@@ -705,6 +761,7 @@ $(document).ready(function() {
     // Toggle filter value
     trig_filt.toggle();
 
+    // Checking "All" checks all boxes in the same category
     if (trig_filt.value === "All" && trig_filt.is_checked) {
       var filter;
       for (var i = m.checkbox_filters.length - 1; i >= 0; i -= 1) {
@@ -713,7 +770,9 @@ $(document).ready(function() {
           filter.setChecked(true);
         }
       }
-    } else if (!(trig_filt.is_checked)) { // FIXME: Find by id instead? (still need to match table)
+    }
+    // Unchecking any box also unchecks "All" in the same category
+    else if (!(trig_filt.is_checked)) { // FIXME: Find by id instead? (still need to match table)
       var filter;
       for (var i = m.checkbox_filters.length - 1; i >= 0; i -= 1) {
         filter = m.checkbox_filters[i];
