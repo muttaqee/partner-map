@@ -344,8 +344,9 @@ function viewObject(id_str, class_str, value_str, header_str, parent_obj) {
 }
 
 // Checkbox filter
-function checkboxFilter(id_str, value_str, table_str) {
-  this.id = id_str;
+function checkboxFilter(table_id_str, dom_id_str, value_str, table_str) {
+  this.table_id = table_id_str;
+  this.id = dom_id_str;
   this.value = value_str;
   this.table = table_str;
 
@@ -516,12 +517,13 @@ function build() {
   selectQuery("*", tableV, "", function(data) {
     var rows = JSON.parse(data);
     for (var i = 0; i < rows.length; i += 1) {
-      var id, val;
+      var table_id, dom_id, val;
       for (var col in rows[i]) {
+        table_id = rows[i][col]; // FIXME: UPDATE TO INT ONCE DB UPDATED
         id = makeId(rows[i][col] + "_vert_checkbox_filter");
         val = rows[i][col];
       }
-      var f = new checkboxFilter(id, val, tableV);
+      var f = new checkboxFilter(table_id, dom_id, val, tableV);
       par_categories.verticals.object.addFilter(f);
       m.addFilter(f);
     }
@@ -532,12 +534,13 @@ function build() {
   selectQuery("*", tableR, "", function(data) {
     var rows = JSON.parse(data);
     for (var i = 0; i < rows.length; i += 1) {
-      var id, val;
+      var table_id, dom_id, val;
       for (var col in rows[i]) {
+        table_id = rows[i][col]; // FIXME: UPDATE TO INT ONCE DB UPDATED
         id = makeId(rows[i][col] + "_reg_checkbox_filter");
         val = rows[i][col];
       }
-      var f = new checkboxFilter(id, val, tableR);
+      var f = new checkboxFilter(table_id, dom_id, val, tableR);
       par_categories.regions.object.addFilter(f);
       m.addFilter(f);
     }

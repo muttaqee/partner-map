@@ -43,6 +43,8 @@
   $db_pass = "password";
   $db_name = "partner_map_db";
 
+  $scripts_path = "C:\\xampp\htdocs\muttaqee-projects\\partner-map\\";
+
   // Connect to MySQL server
   function connect() {
     global $db_host, $db_user, $db_pass, $db_name, $link; // FIXME: Declared correctly? ($link, etc)
@@ -126,7 +128,7 @@
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
-    $script = "C:\\xampp\htdocs\muttaqee-projects\\partner-map\\read-partner-strength-ratings.py";
+    $script = $scripts_path + "read-partner-strength-ratings.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
     echo("<pre>" . print_r($rows, $return = true) . "</pre>"); // FIXME: May remove
@@ -154,7 +156,7 @@
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
-    $script = "C:\\xampp\htdocs\muttaqee-projects\\partner-map\\read-partner-technology-ratings.py";
+    $script = $scripts_path + "read-partner-technology-ratings.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
     if (!$rows) {
@@ -196,7 +198,7 @@
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
-    $script = "C:\\xampp\htdocs\muttaqee-projects\\partner-map\\read-partner-solution-ratings.py";
+    $script = $scripts_path + "read-partner-solution-ratings.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
     if (!$rows) {
@@ -239,7 +241,7 @@
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
-    $script = "C:\\xampp\htdocs\muttaqee-projects\\partner-map\\read-partner-misc-ratings.py";
+    $script = $scripts_path + "read-partner-misc-ratings.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
     if (!$rows) {
@@ -271,7 +273,7 @@
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
-    $script = "C:\\xampp\htdocs\muttaqee-projects\\partner-map\\read-partner-vertical-junction.py";
+    $script = $scripts_path + "read-partner-vertical-junction.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
     if (!$rows) {
@@ -303,7 +305,7 @@
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
-    $script = "C:\\xampp\htdocs\muttaqee-projects\\partner-map\\read-partner-region-junction.py";
+    $script = $scripts_path + "read-partner-region-junction.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
     if (!$rows) {
@@ -337,7 +339,7 @@
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
-    $script = "C:\\xampp\htdocs\muttaqee-projects\\partner-map\\read-consultants.py";
+    $script = $scripts_path + "read-consultants.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
     if (!$rows) {
@@ -386,7 +388,7 @@
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
-    $script = "C:\\xampp\htdocs\muttaqee-projects\\partner-map\\read-consultant-ratings.py";
+    $script = $scripts_path + "read-consultant-ratings.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
     if (!$rows) {
@@ -418,7 +420,7 @@
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
-    $script = "C:\\xampp\htdocs\muttaqee-projects\\partner-map\\read-consultant-partner-junction.py";
+    $script = $scripts_path + "read-consultant-partner-junction.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
     if (!$rows) {

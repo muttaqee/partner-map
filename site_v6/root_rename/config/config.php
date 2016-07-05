@@ -5,4 +5,4 @@ return array(
   'password' => 'password',
   'host' => 'localhost:7860',
   'database' => 'partner_map_db'
-); 
+);
