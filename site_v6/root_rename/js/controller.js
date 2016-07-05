@@ -18,43 +18,43 @@ var v = function view() {
 
 var m = {
   // FIXME: Remove? Continue?
-  
+
   filter_boxes: [],
-  
+
   filter_categories: {
     partners: [],
     opportunities: [],
     consultants: []
   },
-  
+
   rating_filters: [],
   rating_filter_settings: [],
   checkbox_filters: [],
-  
+
   addFilterBox: function(b) {
     if (b instanceof filterBox) {
       this.filter_boxes.push(b);
     }
   },
-  
+
   removeFilterBox: function(b) {
     if (b instanceof filterBox) {
       // FIXME: Implement or remove?
     }
   },
-  
+
   expandFilterBox: function(b) {
     if (b instanceof filterBox) {
       // FIXME: Implement
     }
   },
-  
+
   collapseFilterBox: function(b) {
     if (b instanceof filterBox) {
       // FIXME: Implement
     }
   },
-  
+
   addFilterCategory: function(c) {
     // FIXME: Implement
   },
@@ -370,7 +370,6 @@ checkboxFilter.prototype.checkbox_class = "filter_checkbox";
 // Rating filter
 function ratingFilter(id_str, value_table, is_simple_bool) {
   this.id = id_str;
-  // this.value = value_str; // FIXME LEFT OFF HERE W/ PARAMS
   this.is_simple = is_simple_bool;
   this.domElement = buildRatingFilterItem(this.id, value_table, this.is_simple, this.trigger_class);
 }
@@ -379,10 +378,10 @@ ratingFilter.prototype.trigger_class = "rating_filter_trigger"; // Inject depend
 
 // Rating filter setting (created from an  existing rating filter object)
 function ratingFilterSetting(ratingFilter_obj) {
-  this.id = ratingFilter_obj.id + "_setting";
-
   this.value = ratingFilter_obj.domElement.find(".main option:selected").html();
   this.rating = ratingFilter_obj.domElement.find(".rating option:selected").html();
+
+    this.id = ratingFilter_obj.id + "_" + makeId(this.value) + "_" + makeId(this.rating) + "_setting";
 
   this.domElement = buildRatingFilterSetting(this.id, ratingFilter_obj.domElement); // FIXME: change this ctor & params - need to pass rating directly from here, not rely on domElement
 }
@@ -727,30 +726,44 @@ $(document).ready(function() {
 
   // Rating filter add button
   $body.on("click", "." + ratingFilter.prototype.trigger_class, function() {
+
     var $trigger_element = $(this).parent();
 
 
     var trig_filt = m.findFilterById($trigger_element.attr("id"));
     var setting = new ratingFilterSetting(trig_filt);
-    m.addFilter(setting);
-    trig_filt.domElement.before(setting.domElement);
+    if (m.findFilterById(setting.id) == null) {
+      m.addFilter(setting);
+      // setting.domElement.slideDown();
+      // trig_filt.domElement.before(setting.domElement);
+
+      setting.domElement.insertBefore(trig_filt.domElement).hide().slideDown("fast");
+    }
 
     // FIXME: Remove
-    alert(m.rating_filter_settings[0].value + ", " + m.rating_filter_settings[0].rating);
+    // var arr = m.rating_filter_settings;
+    // var s = "";
+    // for (var i = 0; i < arr.length; i += 1) {
+    //   s += arr[i].id + ": " + arr[i].value + " (" + arr[i].rating + ")\n";
+    // }
+    // alert("Settings: " + s + "(" + arr.length + " total)");
   });
-  
+
   $body.on("click", "." + ratingFilterSetting.prototype.clear_class, function() {
     var $setting = $(this).parent();
     m.removeFilter(m.findFilterById($setting.attr("id")));
-    $setting.remove();
-    
+    $setting.slideUp("fast");
+    setTimeout(function() {
+      $setting.remove();
+    }, 1000);
+
     // FIXME: Remove
     var arr = m.rating_filter_settings;
     var s = "";
     for (var i = arr.length-1; i >= 0; i -= 1) {
       s += arr[i].value + ", " + arr[i].rating + "\n";
     }
-    alert("Settings:\n" + s);
+    //alert("Settings:\n" + s + " (" + arr.length + " total)");
   });
 
   // Checkbox filters
@@ -783,15 +796,15 @@ $(document).ready(function() {
     }
 
     // FIXME: Remove below
-//    var s = "", t = "";
-//    for (var i = m.checkbox_filters.length-1; i >= 0; i -= 1) {
-//      if (m.checkbox_filters[i].is_checked) {
-//        s = s + m.checkbox_filters[i].id + " : " + m.checkbox_filters[i].value + " : " + m.checkbox_filters[i].table + "\n";
-//      } else {
-//        t = t + m.checkbox_filters[i].id + " : " + m.checkbox_filters[i].value + " : " + m.checkbox_filters[i].table + "\n";
-//      }
-//    }
-//    alert("CHECKED (id:value):\n" + s + "\nUNCHECKED (id:value):\n" + t);
+   var s = "", t = "";
+   for (var i = m.checkbox_filters.length-1; i >= 0; i -= 1) {
+     if (m.checkbox_filters[i].is_checked) {
+       s = s + m.checkbox_filters[i].id + " : " + m.checkbox_filters[i].value + " : " + m.checkbox_filters[i].table + "\n";
+     } else {
+       t = t + m.checkbox_filters[i].id + " : " + m.checkbox_filters[i].value + " : " + m.checkbox_filters[i].table + "\n";
+     }
+   }
+   alert("CHECKED (id:value):\n" + s + "\nUNCHECKED (id:value):\n" + t);
   });
 
   // Filter form change listener: triggers query; displays results
