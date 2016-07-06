@@ -6,6 +6,8 @@ var selectScript = "js/../servercode/select.php";
 var insertScript = "js/../servercode/insert.php"; // FIXME: script needs to be written
 var deleteScript = "js/../servercode/delete.php"; // FIXME: script needs to be written
 
+var tables; // Array of lookup tables (populated in load() function)
+var partner_cards;
 //------------------------------------------------------------------------------
 // MVC Abstraction // FIXME: Remove?
 //------------------------------------------------------------------------------
@@ -20,6 +22,10 @@ var m = {
   // FIXME: Remove? Continue?
 
   filter_boxes: [],
+
+  partner_cards: [],
+  consultant_cards: [],
+  opportunity_cards: [],
 
   filter_categories: {
     partners: [],
@@ -206,7 +212,23 @@ function rowsToStringArray(results, delimiter) {
     return $select;
   }
 
-  // function buildDropDownList()
+  function buildDropDownList(class_string, table_name) {
+    var $select = $("<select class=\"" + class_string + "\"></select>");
+    var $option;
+
+    var table = tables[table_name];
+    var id, val;
+    for (var row in table) {
+      id = table[row]["id"];
+      val = table[row]["val"];
+
+      $option = $("<option></option>");
+      $option.attr("id", id);
+      $option.html(val);
+      $select.append($option);
+    }
+    return $select;
+  }
 
   // Build a filter setting from a rating filter item // FIXME: reword comment
   function buildRatingFilterSetting(id_str, $ratingFilterItem) {
@@ -244,12 +266,12 @@ function rowsToStringArray(results, delimiter) {
     $filterItem.attr("id", id_str);
 
     // Main drop-down list
-    var $optionSelect = buildDropDownListFromTable("main", options_table);
+    var $optionSelect = buildDropDownList("main", options_table);
     $filterItem.append($optionSelect);
 
     // Ratings drop-down list
     var ratings_table = is_simple_rating ? "ratings_simple" : "ratings";
-    var $ratingSelect = buildDropDownListFromTable("rating", ratings_table);
+    var $ratingSelect = buildDropDownList("rating", ratings_table);
     $ratingSelect.prepend($("<option value=\"all_ratings\">All ratings</option>"));
     $filterItem.append($ratingSelect);
 
@@ -374,6 +396,7 @@ checkboxFilter.prototype.checkbox_class = "filter_checkbox";
 function ratingFilter(id_str, value_table, is_simple_bool) {
   this.id = id_str;
   this.is_simple = is_simple_bool;
+  this.table = value_table;
   this.domElement = buildRatingFilterItem(this.id, value_table, this.is_simple, this.trigger_class);
 }
 ratingFilter.prototype.class = "rating_filter_item";
@@ -385,7 +408,10 @@ function ratingFilterSetting(ratingFilter_obj) {
   this.rating = ratingFilter_obj.domElement.find(".rating option:selected").html();
 
   this.id = ratingFilter_obj.id + "_" + makeId(this.value) + "_" + makeId(this.rating) + "_setting";
-  // this.table_id // FIXME: left off here - get this id here per selected option, somehow (rating id is fine for now)
+  this.table_id = ratingFilter_obj.domElement.find(".main option:selected").attr("id");
+  this.rating_id = ratingFilter_obj.domElement.find(".rating option:selected").attr("id");
+  this.table = ratingFilter_obj.table;
+  this.is_simple = ratingFilter_obj.is_simple;
 
   this.domElement = buildRatingFilterSetting(this.id, ratingFilter_obj.domElement); // FIXME: change this ctor & params - need to pass rating directly from here, not rely on domElement
 }
@@ -450,6 +476,31 @@ function filterBox(id_str, label_str) {
       this.domElement.append(fc.domElement);
     }
   };
+}
+
+function partnerCard() {
+  this.name = null;
+  this.partner_id = null;
+
+  this.verticals = [];
+  this.regions = [];
+
+  this.partner_strength_ratings = [];
+  this.technology_ratings = [];
+  this.solution_ratings = [];
+  this.misc_ratings = [];
+
+  this.notes = "";
+
+  this.domElement = null;
+}
+
+function consultantCard() {
+
+}
+
+function opportunityCard() {
+
 }
 
 //------------------------------------------------------------------------------
@@ -802,6 +853,7 @@ $(document).ready(function() {
     }
 
     // FIXME: Remove below
+    alert(trig_filt.table_id + " in " + trig_filt.table + ", is_checked: " + trig_filt.is_checked);
    var s = "", t = "";
    for (var i = m.checkbox_filters.length-1; i >= 0; i -= 1) {
      if (m.checkbox_filters[i].is_checked) {
@@ -830,7 +882,7 @@ $(document).ready(function() {
     var verticals = [];
     var geographical_regions = [];
 
-    var tables = {
+    tables = {
       ratings_simple: ratings_simple,
       ratings: ratings,
       partner_strengths: partner_strengths,
@@ -841,14 +893,22 @@ $(document).ready(function() {
       geographical_regions: geographical_regions
     }
 
+    var count = 0;
+
     selectQuery("*", "ratings_simple", "", function(data) {
       var rows = JSON.parse(data);
       var length = rows.length;
       var tmp;
       for (var i = 0; i < length; i += 1) {
-        tmp = {id: rows[i]["grade"], val: rows[i]["grade"]};
+        tmp = {
+          id: rows[i]["grade"],
+          val: rows[i]["grade"],
+          grade: rows[i]["grade"]
+        };
         ratings_simple.push(tmp);
       }
+      tables["ratings_simple"] = ratings_simple;
+      count += 1;
     });
 
     selectQuery("*", "ratings", "", function(data) {
@@ -856,10 +916,15 @@ $(document).ready(function() {
       var length = rows.length;
       var tmp;
       for (var i = 0; i < length; i += 1) {
-        tmp = {id: rows[i]["grade"], val: rows[i]["grade"]};
+        tmp = {
+          id: rows[i]["grade"],
+          val: rows[i]["grade"],
+          grade: rows[i]["grade"]
+        };
         ratings.push(tmp);
       }
       //alert(JSON.stringify(ratings)); // Remove
+      count += 1;
     });
 
     selectQuery("*", "partner_strengths", "", function(data) {
@@ -867,10 +932,15 @@ $(document).ready(function() {
       var length = rows.length;
       var tmp;
       for (var i = 0; i < length; i += 1) {
-        tmp = {id: rows[i]["strength"], val: rows[i]["strength"]};
+        tmp = {
+          id: rows[i]["strength"],
+          val: rows[i]["strength"],
+          strength: rows[i]["strength"]
+        };
         partner_strengths.push(tmp);
       }
       //alert(JSON.stringify(partner_strengths)); // Remove
+      count += 1;
     });
 
     selectQuery("*", "technologies", "", function(data) {
@@ -880,13 +950,14 @@ $(document).ready(function() {
       for (var i = 0; i < length; i += 1) {
         tmp = {
           id: rows[i]["id"],
-          val: rows[i]["technology"],
+          val: rows[i]["technology_type"] + " - " + rows[i]["technology"],
           technology_type: rows[i]["technology_type"],
           technology: rows[i]["technology"]
         };
         technologies.push(tmp);
       }
       //alert(JSON.stringify(technologies)); // Remove
+      count += 1;
     });
 
     selectQuery("*", "solutions", "", function(data) {
@@ -896,13 +967,14 @@ $(document).ready(function() {
       for (var i = 0; i < length; i += 1) {
         tmp = {
           id: rows[i]["id"],
-          val: rows[i]["solution"],
+          val: rows[i]["solution_type"] + " - " + rows[i]["solution"],
           technology_type: rows[i]["solution_type"],
           technology: rows[i]["solution"]
         };
         solutions.push(tmp);
       }
       //alert(JSON.stringify(solutions)); // Remove
+      count += 1;
     });
 
     selectQuery("*", "misc", "", function(data) {
@@ -918,6 +990,7 @@ $(document).ready(function() {
         misc.push(tmp);
       }
       //alert(JSON.stringify(misc)); // Remove
+      count += 1;
     });
 
     selectQuery("*", "verticals", "", function(data) {
@@ -933,6 +1006,7 @@ $(document).ready(function() {
         verticals.push(tmp);
       }
       //alert(JSON.stringify(verticals)); // Remove
+      count += 1;
     });
 
     selectQuery("*", "geographical_regions", "", function(data) {
@@ -948,15 +1022,32 @@ $(document).ready(function() {
         geographical_regions.push(tmp);
       }
       //alert(JSON.stringify(geographical_regions)); // Remove
+      tables["geographical_regions"] = geographical_regions;
+
+      alert('tables... ' + JSON.stringify(tables)); // Remove
+      count += 1;
     });
+
+    // alert("CALL BACK"); // FIXME: Remove
+    // if (typeof(callback) == "function") {
+    //   callback();
+    // }
+
+    while (count < tables.length) {
+
+    }
+    return count;
   }
 
   // Program start
   function execute() {
     alert("Executing...");
-    load(); // Load table info from db
-    //buildView(); // FIXME: Should be build() -> builds model and renders
-    build();
+    // load(); // Load table info from db
+    // //buildView(); // FIXME: Should be build() -> builds model and renders
+    load();
+    setTimeout(function() {
+      build();
+    }, 100); // FIXME: Use more reliable function ordering
     // Listen for view changes
   }
 
