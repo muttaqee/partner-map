@@ -206,6 +206,8 @@ function rowsToStringArray(results, delimiter) {
     return $select;
   }
 
+  // function buildDropDownList()
+
   // Build a filter setting from a rating filter item // FIXME: reword comment
   function buildRatingFilterSetting(id_str, $ratingFilterItem) {
     var main_string = $("#" + $ratingFilterItem.attr("id") + " .main option:selected").html();
@@ -382,7 +384,8 @@ function ratingFilterSetting(ratingFilter_obj) {
   this.value = ratingFilter_obj.domElement.find(".main option:selected").html();
   this.rating = ratingFilter_obj.domElement.find(".rating option:selected").html();
 
-    this.id = ratingFilter_obj.id + "_" + makeId(this.value) + "_" + makeId(this.rating) + "_setting";
+  this.id = ratingFilter_obj.id + "_" + makeId(this.value) + "_" + makeId(this.rating) + "_setting";
+  // this.table_id // FIXME: left off here - get this id here per selected option, somehow (rating id is fine for now)
 
   this.domElement = buildRatingFilterSetting(this.id, ratingFilter_obj.domElement); // FIXME: change this ctor & params - need to pass rating directly from here, not rely on domElement
 }
@@ -519,8 +522,8 @@ function build() {
     for (var i = 0; i < rows.length; i += 1) {
       var table_id, dom_id, val;
       for (var col in rows[i]) {
-        table_id = rows[i][col]; // FIXME: UPDATE TO INT ONCE DB UPDATED
-        id = makeId(rows[i][col] + "_vert_checkbox_filter");
+        table_id = rows[i][col];
+        dom_id = makeId(rows[i][col] + "_vert_checkbox_filter");
         val = rows[i][col];
       }
       var f = new checkboxFilter(table_id, dom_id, val, tableV);
@@ -536,8 +539,8 @@ function build() {
     for (var i = 0; i < rows.length; i += 1) {
       var table_id, dom_id, val;
       for (var col in rows[i]) {
-        table_id = rows[i][col]; // FIXME: UPDATE TO INT ONCE DB UPDATED
-        id = makeId(rows[i][col] + "_reg_checkbox_filter");
+        table_id = rows[i][col];
+        dom_id = makeId(rows[i][col] + "_reg_checkbox_filter");
         val = rows[i][col];
       }
       var f = new checkboxFilter(table_id, dom_id, val, tableR);
@@ -814,9 +817,144 @@ $(document).ready(function() {
   // Should draw filters/query details from some model, not the DOM
   // $body.on(); // FIXME: left off here II
 
+  // Use to db to populate DOM elements
+  function load() {
+    var ratings_simple = []; // [{id: "1", val: "A"}, ...]
+    var ratings = [];
+
+    var partner_strengths = [];
+    var technologies = [];
+    var solutions = [];
+    var misc = [];
+
+    var verticals = [];
+    var geographical_regions = [];
+
+    var tables = {
+      ratings_simple: ratings_simple,
+      ratings: ratings,
+      partner_strengths: partner_strengths,
+      technologies: technologies,
+      solutions: solutions,
+      misc: misc,
+      verticals: verticals,
+      geographical_regions: geographical_regions
+    }
+
+    selectQuery("*", "ratings_simple", "", function(data) {
+      var rows = JSON.parse(data);
+      var length = rows.length;
+      var tmp;
+      for (var i = 0; i < length; i += 1) {
+        tmp = {id: rows[i]["grade"], val: rows[i]["grade"]};
+        ratings_simple.push(tmp);
+      }
+    });
+
+    selectQuery("*", "ratings", "", function(data) {
+      var rows = JSON.parse(data);
+      var length = rows.length;
+      var tmp;
+      for (var i = 0; i < length; i += 1) {
+        tmp = {id: rows[i]["grade"], val: rows[i]["grade"]};
+        ratings.push(tmp);
+      }
+      //alert(JSON.stringify(ratings)); // Remove
+    });
+
+    selectQuery("*", "partner_strengths", "", function(data) {
+      var rows = JSON.parse(data);
+      var length = rows.length;
+      var tmp;
+      for (var i = 0; i < length; i += 1) {
+        tmp = {id: rows[i]["strength"], val: rows[i]["strength"]};
+        partner_strengths.push(tmp);
+      }
+      //alert(JSON.stringify(partner_strengths)); // Remove
+    });
+
+    selectQuery("*", "technologies", "", function(data) {
+      var rows = JSON.parse(data);
+      var length = rows.length;
+      var tmp;
+      for (var i = 0; i < length; i += 1) {
+        tmp = {
+          id: rows[i]["id"],
+          val: rows[i]["technology"],
+          technology_type: rows[i]["technology_type"],
+          technology: rows[i]["technology"]
+        };
+        technologies.push(tmp);
+      }
+      //alert(JSON.stringify(technologies)); // Remove
+    });
+
+    selectQuery("*", "solutions", "", function(data) {
+      var rows = JSON.parse(data);
+      var length = rows.length;
+      var tmp;
+      for (var i = 0; i < length; i += 1) {
+        tmp = {
+          id: rows[i]["id"],
+          val: rows[i]["solution"],
+          technology_type: rows[i]["solution_type"],
+          technology: rows[i]["solution"]
+        };
+        solutions.push(tmp);
+      }
+      //alert(JSON.stringify(solutions)); // Remove
+    });
+
+    selectQuery("*", "misc", "", function(data) {
+      var rows = JSON.parse(data);
+      var length = rows.length;
+      var tmp;
+      for (var i = 0; i < length; i += 1) {
+        tmp = {
+          id: rows[i]["type"],
+          val: rows[i]["type"],
+          type: rows[i]["type"]
+        };
+        misc.push(tmp);
+      }
+      //alert(JSON.stringify(misc)); // Remove
+    });
+
+    selectQuery("*", "verticals", "", function(data) {
+      var rows = JSON.parse(data);
+      var length = rows.length;
+      var tmp;
+      for (var i = 0; i < length; i += 1) {
+        tmp = {
+          id: rows[i]["vertical"],
+          val: rows[i]["vertical"],
+          vertical: rows[i]["vertical"]
+        };
+        verticals.push(tmp);
+      }
+      //alert(JSON.stringify(verticals)); // Remove
+    });
+
+    selectQuery("*", "geographical_regions", "", function(data) {
+      var rows = JSON.parse(data);
+      var length = rows.length;
+      var tmp;
+      for (var i = 0; i < length; i += 1) {
+        tmp = {
+          id: rows[i]["region"],
+          val: rows[i]["region"],
+          region: rows[i]["region"]
+        };
+        geographical_regions.push(tmp);
+      }
+      //alert(JSON.stringify(geographical_regions)); // Remove
+    });
+  }
+
   // Program start
   function execute() {
     alert("Executing...");
+    load(); // Load table info from db
     //buildView(); // FIXME: Should be build() -> builds model and renders
     build();
     // Listen for view changes
