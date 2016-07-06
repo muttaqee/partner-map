@@ -622,6 +622,10 @@ function build() {
     filterBoxes.partners.addFilterCategory(par_categories[cat].object);
   }
 
+  // FIXME: Append search button
+  var $button = $("<input type='button' id='partner_search' value='Search'></input>");
+  filterBoxes.partners.domElement.append($button);
+
   // var consultantFilterCategories =
   // var opportunityFilterCategories =
 
@@ -640,6 +644,8 @@ function build() {
   $resultPanel.appendTo($form);
 
   filterBoxes.partners.domElement.appendTo($filterPanel);
+  filterBoxes.consultants.domElement.appendTo($filterPanel);
+  filterBoxes.opportunities.domElement.appendTo($filterPanel);
 }
 
 //------------------------------------------------------------------------------
@@ -652,23 +658,112 @@ function build() {
 
 // Return partner rows (filtered)
 function searchPartners() {
+
   var select_str = "DISTINCT *";
-  var from_str = "partners";
+  var from_str = "partners, ratings_simple";
+  var where_str_a = ""; // FIXME: Rename
   var where_str = ""; // Will contain UNIONS // FIXME: temporary
 
-  // Use m.active_filters[table_name] // FIXME: LEFT OFF HERE
   var f = m.active_filters;
-  var t = "partner_strengths";
+
+  // Idea:
+  // WHERE <identification across junctions
+  // AND ((val AND rating) OR (val AND rating) OR ...)
+
+var t = "partner_strengths";
+  var r = "ratings_simple";
   var length = f[t].length;
   if (length > 0) {
-    from_str += t + ", "; // FIXME: remove last comma
-    where_str += t + ".rating" + " = " + "\"" + f[t][0].rating + "\", ";
+    where_str += " AND (";
+
+    from_str += ", partner_strength_ratings, partner_strengths";
+
+    where_str_a += " partner_strength_ratings.partner_id = partners.id AND";
+    where_str_a += " partner_strength_ratings.strength = partner_strengths.strength AND";
+    where_str_a += " partner_strength_ratings.rating = ratings_simple.grade AND";
+
+    where_str += "(" + t + ".strength" + " = \"" + f[t][0].table_id + "\"";
+    where_str += " AND ";
+    where_str += r + ".rating" + " = " + "\"" + f[t][0].rating_id + "\"" + ")";
+
     for (var i = 1; i < length; i += 1) {
-      where_str += ", " +
+      where_str += " OR (" + t + ".strength" + " = \"" + f[t][i].table_id + "\"";
+      where_str += " AND ";
+      where_str += r + ".rating" + " = " + "\"" + f[t][i].rating_id + "\"" + ")";
+    // where_str += " OR " + t + ".rating" + " = " + "\"" + f[t][i].rating + "\"";
     }
+    where_str += ")";
   }
 
-  where_str = "(" + where_str + ")";
+  t = "technologies";
+  r = "ratings_simple";
+  length = f[t].length;
+  if (length > 0) {
+    where_str += " AND (";
+
+    from_str += ", partner_technology_ratings, technologies";
+
+    where_str_a += " partner_technology_ratings.partner_id = partners.id AND";
+    where_str_a += " partner_technology_ratings.technology_id = technologies.id AND";
+    where_str_a += " AND partner_technology_ratings.rating = ratings_simple.grade AND";
+
+    where_str += "(" + t + ".technology_id" + " = \"" + f[t][0].table_id + "\"";
+    where_str += " AND ";
+    where_str += r + ".rating" + " = " + "\"" + f[t][0].rating_id + "\"" + ")";
+
+    for (var i = 1; i < length; i += 1) {
+      where_str += " OR (" + t + ".technology_id" + " = \"" + f[t][i].table_id + "\"";
+      where_str += " AND ";
+      where_str += r + ".rating" + " = " + "\"" + f[t][i].rating_id + "\"" + ")";
+    // where_str += " OR " + t + ".rating" + " = " + "\"" + f[t][i].rating + "\"";
+    }
+    where_str += ")";
+  }
+
+  t = "solutions";
+  r = "ratings_simple";
+  length = f[t].length;
+  if (length > 0) {
+    where_str += " AND (";
+
+    from_str += ", partner_solution_ratings, technologies";
+
+    where_str_a += " partner_solution_ratings.partner_id = partners.id AND";
+    where_str_a += " partner_solution_ratings.solution_id = solutions.id AND";
+    where_str_a += " partner_solution_ratings.rating = ratings_simple.grade AND";
+
+    where_str += "(" + t + ".solution_id" + " = \"" + f[t][0].table_id + "\"";
+    where_str += " AND ";
+    where_str += r + ".rating" + " = " + "\"" + f[t][0].rating_id + "\"" + ")";
+
+    for (var i = 1; i < length; i += 1) {
+      where_str += " OR (" + t + ".solution_id" + " = \"" + f[t][i].table_id + "\"";
+      where_str += " AND ";
+      where_str += r + ".rating" + " = " + "\"" + f[t][i].rating_id + "\"" + ")";
+    // where_str += " OR " + t + ".rating" + " = " + "\"" + f[t][i].rating + "\"";
+    }
+    where_str += ")";
+  }
+
+  t = "misc";
+  r = "ratings_simple";
+  length = f[t].length;
+  if (length > 0) {
+    where_str += " AND (";
+
+    from_str += t + ", "; // FIXME: remove last comma
+    where_str += "(" + t + ".type" + " = \"" + f[t][0].table_id + "\"";
+    where_str += " AND ";
+    where_str += r + ".rating" + " = " + "\"" + f[t][0].rating_id + "\"" + ")";
+
+    for (var i = 1; i < length; i += 1) {
+      where_str += " OR (" + t + ".type" + " = \"" + f[t][i].table_id + "\"";
+      where_str += " AND ";
+      where_str += r + ".rating" + " = " + "\"" + f[t][i].rating_id + "\"" + ")";
+    // where_str += " OR " + t + ".rating" + " = " + "\"" + f[t][i].rating + "\"";
+    }
+    where_str += ")";
+  }
 
   // for (var table in f) {
   //   if (f[table].length > 0) {
@@ -683,10 +778,12 @@ function searchPartners() {
 
 
 
-  selectQuery(select_str, from_str, where_str, function(data) {
-    var rows = JSON.parse(data);
-    // FIXME: Drop data into cards as buckets, creating new as needed (modify model m)
-  });
+  // selectQuery(select_str, from_str, where_str, function(data) {
+  //   var rows = JSON.parse(data);
+  //   // FIXME: Drop data into cards as buckets, creating new as needed (modify model m)
+  // });
+  var query_str = "SELECT " + select_str + " FROM " + from_str + " WHERE (" + where_str_a + ") " + where_str;
+  alert("Query string: " + query_str);
 }
 
 //function dropIntoPartnerCard(id, )
@@ -885,6 +982,11 @@ $(document).ready(function() {
     //alert("Settings:\n" + s + " (" + arr.length + " total)");
   });
 
+  // FIXME: Update
+  $body.on("click", "input[id='partner_search']", function() {
+    searchPartners();
+  });
+
   // Checkbox filters
   $body.on("change", "." + checkboxFilter.prototype.checkbox_class, function() {
     var id = $(this).attr("name"); // FIXME: Change this to "id"
@@ -944,6 +1046,8 @@ $(document).ready(function() {
     var verticals = [];
     var geographical_regions = [];
 
+    var partner_strength_ratings = [];
+
     tables = {
       ratings_simple: ratings_simple,
       ratings: ratings,
@@ -952,7 +1056,10 @@ $(document).ready(function() {
       solutions: solutions,
       misc: misc,
       verticals: verticals,
-      geographical_regions: geographical_regions
+      geographical_regions: geographical_regions,
+
+      partner_strength_ratings: partner_strength_ratings
+      //FIXME: Add further tables
     }
 
     var count = 0;
@@ -1001,7 +1108,7 @@ $(document).ready(function() {
         };
         partner_strengths.push(tmp);
       }
-      //alert(JSON.stringify(partner_strengths)); // Remove
+      alert("Strengths: " + JSON.stringify(partner_strengths)); // Remove
       count += 1;
     });
 
@@ -1090,14 +1197,32 @@ $(document).ready(function() {
       count += 1;
     });
 
+    selectQuery("*", "partner_strength_ratings", "", function(data) {
+      var rows = JSON.parse(data);
+      var length = rows.length;
+      var tmp;
+      for (var i = 0; i < length; i += 1) {
+        tmp = {
+          id: rows[i]["id"],
+          val: rows[i]["strength"],
+          strength: rows[i]["strength"],
+          rating: rows[i]["rating"]
+        };
+        partner_strength_ratings.push(tmp);
+      }
+      alert("Strengths ratings: " + JSON.stringify(partner_strength_ratings)); // Remove
+      count += 1;
+    });
+
+    // FIXME: Remove
     // alert("CALL BACK"); // FIXME: Remove
     // if (typeof(callback) == "function") {
     //   callback();
     // }
 
-    while (count < tables.length) {
-
-    }
+    // while (count < tables.length) {
+    //
+    // }
     return count;
   }
 

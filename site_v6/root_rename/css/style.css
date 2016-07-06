@@ -64,6 +64,10 @@ form {
 	margin: 10px;
 }
 
+.filter_box {
+	border: 1px solid black;
+}
+
 .filter_category_header {
 	padding: 5px 0px 5px 5px;
 	background-color: black;
@@ -88,4 +92,9 @@ input[class="clear_filter"] {
 
 .checkbox_filter_item input[class="filter_checkbox"] {
   /*opacity: 0.5;*/
+}
+
+input[id="partner_search"] {
+	float: right;
+	margin: 0 10px 10px 10px;
 }
