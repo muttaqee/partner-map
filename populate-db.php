@@ -38,10 +38,11 @@
   }
 
   // Connection variables
-  $db_host = "localhost:7860";
-  $db_user = "root";
-  $db_pass = "password";
-  $db_name = "partner_map_db";
+  $config = include('config\config.php');
+  $db_host = $config["host"];
+  $db_user = $config["username"];
+  $db_pass = $config["password"];
+  $db_name = $config["database"];
 
   // Connect to MySQL server
   function connect() {
@@ -126,7 +127,7 @@
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
-    $script = "C:\\xampp\htdocs\muttaqee-projects\\partner-map\\read-partner-strength-ratings.py";
+    $script = "C:\\xampp\htdocs\sas_app\\read-partner-strength-ratings.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
     echo("<pre>" . print_r($rows, $return = true) . "</pre>"); // FIXME: May remove
@@ -154,7 +155,7 @@
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
-    $script = "C:\\xampp\htdocs\muttaqee-projects\\partner-map\\read-partner-technology-ratings.py";
+    $script = "C:\\xampp\htdocs\sas_app\\read-partner-technology-ratings.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
     if (!$rows) {
@@ -196,7 +197,7 @@
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
-    $script = "C:\\xampp\htdocs\muttaqee-projects\\partner-map\\read-partner-solution-ratings.py";
+    $script = "C:\\xampp\htdocs\sas_app\\read-partner-solution-ratings.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
     if (!$rows) {
@@ -239,7 +240,7 @@
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
-    $script = "C:\\xampp\htdocs\muttaqee-projects\\partner-map\\read-partner-misc-ratings.py";
+    $script = "C:\\xampp\htdocs\sas_app\\read-partner-misc-ratings.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
     if (!$rows) {
@@ -271,7 +272,7 @@
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
-    $script = "C:\\xampp\htdocs\muttaqee-projects\\partner-map\\read-partner-vertical-junction.py";
+    $script = "C:\\xampp\htdocs\sas_app\\read-partner-vertical-junction.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
     if (!$rows) {
@@ -303,7 +304,7 @@
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
-    $script = "C:\\xampp\htdocs\muttaqee-projects\\partner-map\\read-partner-region-junction.py";
+    $script = "C:\\xampp\htdocs\sas_app\\read-partner-region-junction.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
     if (!$rows) {
@@ -337,7 +338,7 @@
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
-    $script = "C:\\xampp\htdocs\muttaqee-projects\\partner-map\\read-consultants.py";
+    $script = "C:\\xampp\htdocs\sas_app\\read-consultants.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
     if (!$rows) {
@@ -386,7 +387,7 @@
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
-    $script = "C:\\xampp\htdocs\muttaqee-projects\\partner-map\\read-consultant-ratings.py";
+    $script = "C:\\xampp\htdocs\sas_app\\read-consultant-ratings.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
     if (!$rows) {
@@ -418,7 +419,7 @@
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
-    $script = "C:\\xampp\htdocs\muttaqee-projects\\partner-map\\read-consultant-partner-junction.py";
+    $script = "C:\\xampp\htdocs\sas_app\\read-consultant-partner-junction.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
     if (!$rows) {
@@ -468,15 +469,15 @@
   // Populate tables that do no need to be read from the workbook
   function populateTables() {
     // populate_partners(); # FIXME: use separate PHP file, write-partners-pass1.php - for this
-    // populate_partner_strength_ratings(); # FIXME: Uncomment (works)
-    // populate_partner_technology_ratings(); # FIXME: Uncomment (works)
-    // populate_partner_solution_ratings(); # FIXME: Uncomment (works)
-    // populate_partner_misc_ratings(); # FIXME: Uncomment (works)
-    // populate_partner_vertical_junction(); # FIXME: Uncomment (works)
-    // populate_partner_region_junction(); # FIXME: Uncomment (works)
-    // populate_consultants(); # FIXME: MAKESHIFT INSERTS - whole name stored in last_name, and is_rejected set to 0 for all rows
-    // populate_consultant_ratings();# FIXME: Depends on MAKESHIFT consultants table
-    // populate_consultant_partner_junction(); # FIXME: Used MAKESHIFT consultants table; not all partner ids found in partners
+    //populate_partner_strength_ratings(); # FIXME: Uncomment (works)
+    //populate_partner_technology_ratings(); # FIXME: Uncomment (works)
+    //populate_partner_solution_ratings(); # FIXME: Uncomment (works)
+    //populate_partner_misc_ratings(); # FIXME: Uncomment (works)
+    //populate_partner_vertical_junction(); # FIXME: Uncomment (works)
+    //populate_partner_region_junction(); # FIXME: Uncomment (works)
+    //populate_consultants(); # FIXME: MAKESHIFT INSERTS - whole name stored in last_name, and is_rejected set to 0 for all rows
+    //populate_consultant_ratings();# FIXME: Depends on MAKESHIFT consultants table
+    //populate_consultant_partner_junction(); # FIXME: Used MAKESHIFT consultants table; not all partner ids found in partners
   }
 
   // Main function

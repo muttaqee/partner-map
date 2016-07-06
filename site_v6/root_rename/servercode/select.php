@@ -3,10 +3,11 @@
 /* Queries the database. */
 
   // Connection variables
-$db_host = "localhost:7860";
-$db_user = "root";
-$db_pass = "password";
-$db_name = "partner_map_db";
+  $config = include('..\config\config.php');
+  $db_host = $config["host"];
+  $db_user = $config["username"];
+  $db_pass = $config["password"];
+  $db_name = $config["database"];
 
 // Display message
 function report($string) {
@@ -81,6 +82,6 @@ function execute() {
   disconnect();
 }
 
-execute(); 
+execute();
 
 ?>

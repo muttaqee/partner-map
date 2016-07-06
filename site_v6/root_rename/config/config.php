@@ -2,7 +2,7 @@
 
 return array(
   'username' => 'root',
-  'password' => 'password',
-  'host' => 'localhost:7860',
+  'password' => '',
+  'host' => 'localhost',
   'database' => 'partner_map_db'
-); 
+);

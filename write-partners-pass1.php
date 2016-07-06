@@ -4,7 +4,7 @@ echo "<pre>PHP script executing...</pre>";
 
 // Prepare shell command
 $prog = "C:\Python34\python";
-$script = "C:\\xampp\htdocs\muttaqee-projects\\partner-map\\read-partners-pass1.py";
+$script = "C:\\xampp\htdocs\sas_app\\read-partners-pass1.py";
 $cmd = $prog . " " . $script;
 
 // Execute shell command and decode the result as an associative array
@@ -16,10 +16,11 @@ echo("<pre>" . print_r($result, $return = true) . "</pre>");
 # echo $result[48]['official_name']; # Accessing id 48, "official_name" data
 
 // Connect to and select the database
-$db_host = "localhost:7860";
-$db_user = "root";
-$db_pass = "password";
-$db_name = "partner_map_db";
+$config = include('config\config.php');
+$db_host = $config["host"];
+$db_user = $config["username"];
+$db_pass = $config["password"];
+$db_name = $config["database"];
 $link = mysql_connect($db_host, $db_user, $db_pass);
 if (!$link) {
   die("<pre>Could not connect to server: </pre>" . mysql_error());
