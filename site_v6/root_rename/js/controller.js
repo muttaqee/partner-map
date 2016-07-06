@@ -37,6 +37,15 @@ var m = {
   rating_filter_settings: [],
   checkbox_filters: [],
 
+  active_filters: {
+    partner_strengths: [],
+    technologies: [],
+    solutions: [],
+    misc: [],
+    verticals: [],
+    geographical_regions: []
+  },
+
   addFilterBox: function(b) {
     if (b instanceof filterBox) {
       this.filter_boxes.push(b);
@@ -70,6 +79,7 @@ var m = {
       this.rating_filters.push(f);
     } else if (f instanceof ratingFilterSetting) {
       this.rating_filter_settings.push(f);
+      this.active_filters[f.table].push(f);
     } else if (f instanceof checkboxFilter) {
       this.checkbox_filters.push(f);
     }
@@ -80,8 +90,10 @@ var m = {
       this.rating_filters.splice(this.rating_filters.indexOf(f), 1);
     } else if (f instanceof ratingFilterSetting) {
       this.rating_filter_settings.splice(this.rating_filter_settings.indexOf(f), 1);
+      this.active_filters[f.table].splice(this.active_filters[f.table].indexOf(f), 1);
     } else if (f instanceof checkboxFilter) {
       this.checkbox_filters.splice(this.checkbox_filters.indexOf(f), 1);
+      this.active_filters[f.table].splice(this.active_filters[f.table].indexOf(f), 1);
     }
   },
 
@@ -380,13 +392,18 @@ function checkboxFilter(table_id_str, dom_id_str, value_str, table_str) {
   this.domCheckbox = this.domElement.find("input[type='checkbox']");
 
   this.setChecked = function(boolean) {
+    if (!(this.is_checked) && boolean) {
+      m.active_filters[this.table].push(this);
+    } else if (this.is_checked && !boolean) {
+      m.active_filters[this.table].splice(m.active_filters[this.table].indexOf(this), 1);
+    }
+    //alert(JSON.stringify(m.active_filters[this.table].length)); // FIXME: Remove
     this.is_checked = boolean;
     this.domCheckbox.prop("checked", this.is_checked);
   };
 
   this.toggle = function() {
-    this.is_checked = !this.is_checked;
-    this.domCheckbox.prop("checked", this.is_checked);
+    this.setChecked(!this.is_checked);
   };
 }
 checkboxFilter.prototype.class = "checkbox_filter_item";
@@ -630,6 +647,51 @@ function build() {
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
+// Search
+//------------------------------------------------------------------------------
+
+// Return partner rows (filtered)
+function searchPartners() {
+  var select_str = "DISTINCT *";
+  var from_str = "partners";
+  var where_str = ""; // Will contain UNIONS // FIXME: temporary
+
+  // Use m.active_filters[table_name] // FIXME: LEFT OFF HERE
+  var f = m.active_filters;
+  var t = "partner_strengths";
+  var length = f[t].length;
+  if (length > 0) {
+    from_str += t + ", "; // FIXME: remove last comma
+    where_str += t + ".rating" + " = " + "\"" + f[t][0].rating + "\", ";
+    for (var i = 1; i < length; i += 1) {
+      where_str += ", " +
+    }
+  }
+
+  where_str = "(" + where_str + ")";
+
+  // for (var table in f) {
+  //   if (f[table].length > 0) {
+  //     from_str += ", " + table;
+  //
+  //   }
+  // }
+
+  // Gather all filter values (setting and checkbox)
+  var settings = m.rating_filter_settings;
+  var checkboxes = m.checkbox_filters;
+
+
+
+  selectQuery(select_str, from_str, where_str, function(data) {
+    var rows = JSON.parse(data);
+    // FIXME: Drop data into cards as buckets, creating new as needed (modify model m)
+  });
+}
+
+//function dropIntoPartnerCard(id, )
+
+//------------------------------------------------------------------------------
 // EVENT HANDLING
 //------------------------------------------------------------------------------
 
@@ -862,7 +924,7 @@ $(document).ready(function() {
        t = t + m.checkbox_filters[i].id + " : " + m.checkbox_filters[i].value + " : " + m.checkbox_filters[i].table + "\n";
      }
    }
-   alert("CHECKED (id:value):\n" + s + "\nUNCHECKED (id:value):\n" + t);
+   //alert("CHECKED (id:value):\n" + s + "\nUNCHECKED (id:value):\n" + t);
   });
 
   // Filter form change listener: triggers query; displays results
