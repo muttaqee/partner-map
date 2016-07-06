@@ -1,0 +1,81 @@
+SELECT
+
+p.official_name, p.notes,
+
+pstr.strength,
+pstr.rating,
+
+ptecr.technology,
+ptecr.rating,
+
+psolr.solution,
+psolr.rating,
+
+pmisr.misc_type,
+pmisr.rating,
+
+pvj.vertical,
+
+prj.region
+
+FROM
+
+partners p,
+
+partner_strength_ratings pstrr,
+partner_strengths pstr,
+
+partner_technology_ratings ptecr,
+technologies tec,
+
+partner_solution_ratings psolr,
+solutions sol,
+
+partner_misc_ratings pmisr,
+misc mis,
+
+partner_vertical_junction pvj,
+verticals ver,
+
+partner_region_junction prj,
+geographical regions reg,
+
+ratings_simple r
+
+WHERE
+
+(
+(p.id = pstrr.partner_id
+AND pstrr.strength = pstr.strength)
+OR
+(p.id = ptecr.partner_id
+AND ptecr.technology_id = tec.id)
+OR
+(p.id = psolr.partner_id
+AND psolr.solution_id = sol.id)
+OR
+(p.id = pmisr.partner_id
+AND pmisr.misc_type = mis.type)
+OR
+(p.id = pvj.partner_id
+AND pvj.vertical = verticals.vertical)
+OR
+(p.id = prj.partner_id
+AND prj.region = region)
+)
+
+AND
+
+(
+(pstrr.rating = x OR pstrr.rating = y OR ...)
+AND
+(ptecr.rating = x OR ...)
+AND
+(psolr.rating = x OR ...)
+AND
+(pmisr.rating = x OR ...)
+AND
+(pvj.vertical = x OR ...)
+AND
+(prj.region = x OR ...)
+);
