@@ -118,6 +118,7 @@
     }
   }
 
+  // FIXME: Remove
   // Populate table, but insert partner_id value instead of partner_name
   function populateTableSpecial($table_name, $columns, $rows) {
     // foreach ($rows as $row)
@@ -126,7 +127,7 @@
   // Populate table: partner_strength_ratings
   function populate_partner_strength_ratings() {
     $table_name = "partner_strength_ratings";
-    $columns = array("partner_id", "strength", "rating");
+    $columns = array("partner_id", "partner_strength_id", "rating_id");
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
@@ -139,7 +140,7 @@
     foreach ($rows as $key => $row) {
       $sql = "
         SELECT id FROM partners
-        WHERE partners.official_name LIKE \"" . $row["partner_name"] . "\"
+        WHERE partners.name LIKE \"" . $row["partner_name"] . "\"
         LIMIT 1
       ";
       $partner_id = mysql_result(query($sql, $sql, false), 0);
@@ -433,7 +434,7 @@
     foreach ($rows as $key => $row) {
       $sql = "
       SELECT id FROM partners
-      WHERE partners.official_name LIKE '%" . $row["partner_name"] . "%'
+      WHERE partners.name LIKE '%" . $row["partner_name"] . "%'
       LIMIT 1
       ";
       $partner_id = mysql_result(query($sql, $sql, false), 0);
@@ -469,9 +470,79 @@
     populateTable($table_name, $columns, $rows);
   }
 
+  // Populate table: partners
+  function populate_partners() {
+    // Execute and retrieve JSON rows from Python script (store into $rows)
+    $prog = "C:\Python34\python";
+    $script = "read-partners-pass1.py";
+    $cmd = $prog . " " . $script;
+    $result = json_decode(shell_exec($cmd), true);
+    echo("<pre>" . print_r($result, $return = true) . "</pre>"); // FIXME: May remove
+
+
+    // Store each row to the database
+    foreach ($result as $key => $row) {
+      # FIXME. Can remove this. Printing row id.
+      echo "<pre>" . $key . "</pre>";
+
+      // Remember column names (used for query string construction)
+      $columns = array();
+      foreach ($row as $key => $value) {
+        array_push($columns, $key);
+      }
+      // Construct query in this format:
+      // "INSERT INTO table (col1,...,colN) VALUES ('val1',...,'valN')"
+      // NOTE: All non-null values are encased in single quotes
+
+      // Columns
+      $query = "INSERT INTO partners (";
+      $size = count($columns);
+      for ($i = 0; $i < $size-1; $i++) {
+        $query .= "$columns[$i],";
+      }
+      // Last column (no comma)
+      $query .= $columns[$size-1];
+      $query .= ") VALUES (";
+      // Values
+      for ($i = 0; $i < $size-1; $i++) {
+        $value = $row[$columns[$i]];
+        echo "<pre>" . $columns[$i] . ": " . $value . "</pre>"; // FIXME. Remove this.
+        if ($columns[$i] == "is_partner_plus") {
+          $query .= ($value ? 1 : 0) . ",";
+        } else if ($value) {
+          $query .= "\"" . $value . "\"" . ",";
+        } else {
+          $query .= "null,";
+        }
+      }
+      // Last value (no comma)
+      $value = $row[$columns[$size-1]];
+      if ($columns[$i] == "is_partner_plus") {
+        #$query .= ($value ? 1 : 0) . ",";
+        $query .= ($value ? 1 : 0); // FIXME. Value assigned - BIT(1)
+      } else if ($value) {
+        $query .= "\"" . $value . "\"";
+      } else {
+        $query .= "null";
+      }
+      $query .= ")";
+      echo("<pre>" . $query . "</pre>"); # FIXME remove this test
+
+      query($query, $query, false);
+
+      // Send query
+      // if (!mysql_query($query, $link)) {
+      //   echo("<pre>FAILURE. Could not store a row to the database: " . mysql_error() . "\n</pre>");
+      // } else {
+      //   echo("<pre>SUCCESS!\n</pre>");
+      // }
+    }
+
+  }
+
   // Populate tables that do no need to be read from the workbook
   function populateTables() {
-    // populate_partners(); # FIXME: use separate PHP file, write-partners-pass1.php - for this
+    populate_partners(); # FIXME: use separate PHP file, write-partners-pass1.php - for this
     //populate_partner_strength_ratings(); # FIXME: Uncomment (works)
     //populate_partner_technology_ratings(); # FIXME: Uncomment (works)
     //populate_partner_solution_ratings(); # FIXME: Uncomment (works)

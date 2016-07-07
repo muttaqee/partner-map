@@ -61,7 +61,7 @@ def getRow(row_number):
         # json_row += getNameValuePair(name = "name", value = "null") + "," # FIXME: Removed
 
         # Official name (never null)
-        json_row += getNameValuePair(name = "official_name", value = "\"" + cell_value + "\"") + ","
+        json_row += getNameValuePair(name = "name", value = "\"" + cell_value + "\"") + ","
 
         # Partner plus (1 or 0)
         if ws.cell(row = row_number, column = x_pp).value:
