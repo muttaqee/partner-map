@@ -45,7 +45,8 @@
   $db_name = $config["database"];
 
   //$scripts_path = "C:\\xampp\htdocs\muttaqee-projects\\partner-map\\";
-  $scripts_path = "C:\\xampp\htdocs\sas_app\\";
+  // $scripts_path = "C:\\xampp\htdocs\sas_app\\";
+  $scripts_path = "";
 
   // Connect to MySQL server
   function connect() {
@@ -131,21 +132,43 @@
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
-    $script = $scripts_path + "read-partner-strength-ratings.py";
+    $script = $scripts_path . "read-partner-strength-ratings.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
     echo("<pre>" . print_r($rows, $return = true) . "</pre>"); // FIXME: May remove
 
-    // Prepare $rows array: replace "partner_name" with "partner_id"
+    // Prepare $rows array: replays key-value pairs so as to match table columns
     foreach ($rows as $key => $row) {
+      // Replace "partner_name":<name> with "partner_id":<id>
       $sql = "
-        SELECT id FROM partners
-        WHERE partners.name LIKE \"" . $row["partner_name"] . "\"
-        LIMIT 1
+      SELECT id FROM partners
+      WHERE partners.name LIKE \"" . $row["partner_name"] . "\"
+      LIMIT 1
       ";
       $partner_id = mysql_result(query($sql, $sql, false), 0);
       $row["partner_id"] = $partner_id;
       unset($row['partner_name']);
+
+      // Replace "partner_strength":<name> with "partner_strength_id":<id>
+      $sql = "
+      SELECT id FROM partner_strengths
+      WHERE partner_strengths.name LIKE \"" . $row["partner_strength"] . "\"
+      LIMIT 1
+      ";
+      $partner_strength_id = mysql_result(query($sql, $sql, false), 0);
+      $row["partner_strength_id"] = $partner_strength_id;
+      unset($row["partner_strength"]);
+
+      // Replace "rating":<name> with "rating_id":<id>
+      $sql = "
+      SELECT id FROM ratings_simple
+      WHERE ratings_simple.name LIKE \"" . $row["rating"] . "\"
+      LIMIT 1
+      ";
+      $rating_id = mysql_result(query($sql, $sql, false), 0);
+      $row["rating_id"] = $rating_id;
+      unset($row["rating"]);
+
       $rows[$key] = $row;
     }
 
@@ -154,12 +177,14 @@
 
   // Populate table: partner_technology_ratings
   function populate_partner_technology_ratings() {
+    global $scripts_path;
+
     $table_name = "partner_technology_ratings";
-    $columns = array("partner_id", "technology_id", "rating");
+    $columns = array("partner_id", "technology_id", "rating_id");
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
-    $script = $scripts_path + "read-partner-technology-ratings.py";
+    $script = $scripts_path . "read-partner-technology-ratings.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
     if (!$rows) {
@@ -170,20 +195,30 @@
     foreach ($rows as $key => $row) {
       $sql = "
       SELECT id FROM partners
-      WHERE partners.official_name LIKE \"" . $row["partner_name"] . "\"
+      WHERE partners.name LIKE \"" . $row["partner_name"] . "\"
       LIMIT 1
       ";
       $partner_id = mysql_result(query($sql, $sql, false), 0);
 
       $sql = "
       SELECT id FROM technologies
-      WHERE technologies.technology LIKE \"" . $row["technology"] . "\"
+      WHERE technologies.name LIKE \"" . $row["technology"] . "\"
       LIMIT 1
       ";
       $technology_id = mysql_result(query($sql, $sql, false), 0);
 
+      // Replace "rating":<name> with "rating_id":<id>
+      $sql = "
+      SELECT id FROM ratings_simple
+      WHERE ratings_simple.name LIKE \"" . $row["rating"] . "\"
+      LIMIT 1
+      ";
+      $rating_id = mysql_result(query($sql, $sql, false), 0);
+
+      $row["rating_id"] = $rating_id;
       $row["partner_id"] = $partner_id;
       $row["technology_id"] = $technology_id;
+      unset($row["rating"]);
       unset($row["partner_name"]);
       unset($row["technology"]);
       unset($row["technology_type"]);
@@ -196,12 +231,14 @@
 
   // Populate table: partner_solution_ratings
   function populate_partner_solution_ratings() {
+    global $scripts_path;
+
     $table_name = "partner_solution_ratings";
-    $columns = array("partner_id", "solution_id", "rating");
+    $columns = array("partner_id", "solution_id", "rating_id");
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
-    $script = $scripts_path + "read-partner-solution-ratings.py";
+    $script = $scripts_path . "read-partner-solution-ratings.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
     if (!$rows) {
@@ -212,23 +249,32 @@
     foreach ($rows as $key => $row) {
       $sql = "
       SELECT id FROM partners
-      WHERE partners.official_name LIKE \"" . $row["partner_name"] . "\"
+      WHERE partners.name LIKE \"" . $row["partner_name"] . "\"
       LIMIT 1
       ";
       $partner_id = mysql_result(query($sql, $sql, false), 0);
 
       $sql = "
       SELECT id FROM solutions
-      WHERE solutions.solution LIKE \"" . $row["solution"] . "\"
+      WHERE solutions.name LIKE \"" . $row["solution"] . "\"
       LIMIT 1
       ";
       $solution_id = mysql_result(query($sql, $sql, false), 0);
 
+      $sql = "
+      SELECT id FROM ratings_simple
+      WHERE ratings_simple.name LIKE \"" . $row["rating"] . "\"
+      LIMIT 1
+      ";
+      $rating_id = mysql_result(query($sql, $sql, false), 0);
+
       $row["partner_id"] = $partner_id;
       $row["solution_id"] = $solution_id;
+      $row["rating_id"] = $rating_id;
       unset($row["partner_name"]);
       unset($row["solution"]);
       unset($row["solution_type"]);
+      unset($row["rating"]);
 
       $rows[$key] = $row;
     }
@@ -239,12 +285,14 @@
 
   // Populate table: partner_misc_ratings
   function populate_partner_misc_ratings() {
+    global $scripts_path;
+
     $table_name = "partner_misc_ratings";
-    $columns = array("partner_id", "misc_type", "rating");
+    $columns = array("partner_id", "misc_id", "rating_id");
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
-    $script = $scripts_path + "read-partner-misc-ratings.py";
+    $script = $scripts_path . "read-partner-misc-ratings.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
     if (!$rows) {
@@ -255,13 +303,31 @@
     foreach ($rows as $key => $row) {
       $sql = "
       SELECT id FROM partners
-      WHERE partners.official_name LIKE \"" . $row["partner_name"] . "\"
+      WHERE partners.name LIKE \"" . $row["partner_name"] . "\"
       LIMIT 1
       ";
       $partner_id = mysql_result(query($sql, $sql, false), 0);
 
+      $sql = "
+      SELECT id FROM misc
+      WHERE misc.name LIKE \"" . $row["misc_type"] . "\"
+      LIMIT 1
+      ";
+      $misc_id = mysql_result(query($sql, $sql, false), 0);
+
+      $sql = "
+      SELECT id FROM ratings_simple
+      WHERE ratings_simple.name LIKE \"" . $row["rating"] . "\"
+      LIMIT 1
+      ";
+      $rating_id = mysql_result(query($sql, $sql, false), 0);
+
       $row["partner_id"] = $partner_id;
+      $row["misc_id"] = $misc_id;
+      $row["rating_id"] = $rating_id;
       unset($row["partner_name"]);
+      unset($row["misc_type"]);
+      unset($row["rating"]);
 
       $rows[$key] = $row;
     }
@@ -271,12 +337,14 @@
 
   // Populate table: partner_vertical_junction
   function populate_partner_vertical_junction() {
+    global $scripts_path;
+
     $table_name = "partner_vertical_junction";
-    $columns = array("partner_id", "vertical");
+    $columns = array("partner_id", "vertical_id");
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
-    $script = $scripts_path + "read-partner-vertical-junction.py";
+    $script = $scripts_path . "read-partner-vertical-junction.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
     if (!$rows) {
@@ -287,13 +355,22 @@
     foreach ($rows as $key => $row) {
       $sql = "
       SELECT id FROM partners
-      WHERE partners.official_name LIKE \"" . $row["partner_name"] . "\"
+      WHERE partners.name LIKE \"" . $row["partner_name"] . "\"
       LIMIT 1
       ";
       $partner_id = mysql_result(query($sql, $sql, false), 0);
 
+      $sql = "
+      SELECT id FROM verticals
+      WHERE verticals.name LIKE \"" . $row["vertical"] . "\"
+      LIMIT 1
+      ";
+      $vertical_id = mysql_result(query($sql, $sql, false), 0);
+
       $row["partner_id"] = $partner_id;
+      $row["vertical_id"] = $vertical_id;
       unset($row["partner_name"]);
+      unset($row["vertical"]);
 
       $rows[$key] = $row;
     }
@@ -303,54 +380,91 @@
 
   // Populate table: partner_region_junction
   function populate_partner_region_junction() {
+    global $scripts_path;
+
     $table_name = "partner_region_junction";
-    $columns = array("partner_id", "region");
+    $columns = array("partner_id", "region_id");
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
-    $script = $scripts_path + "read-partner-region-junction.py";
+    $script = $scripts_path . "read-partner-region-junction.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
     if (!$rows) {
       report("<pre>Error: \$rows is empty. Make sure the script is only printing the desired result.</pre>");
     }
+    echo("<pre>" . print_r($rows, $return = true) . "</pre>"); // FIXME: May remove
 
     // FIXME: Prepare $rows before passing to populateTable
     foreach ($rows as $key => $row) {
       $sql = "
       SELECT id FROM partners
-      WHERE partners.official_name LIKE \"" . $row["partner_name"] . "\"
+      WHERE partners.name LIKE \"" . $row["partner_name"] . "\"
       LIMIT 1
       ";
       $partner_id = mysql_result(query($sql, $sql, false), 0);
 
+      $sql = "
+      SELECT id FROM regions
+      WHERE regions.name LIKE \"" . $row["region"] . "\"
+      LIMIT 1
+      ";
+      $region_id = mysql_result(query($sql, $sql, false), 0);
+
       $row["partner_id"] = $partner_id;
+      $row["region_id"] = $region_id;
       unset($row["partner_name"]);
+      unset($row["region"]);
 
       $rows[$key] = $row;
     }
-    #echo("<pre>" . print_r($rows, $return = true) . "</pre>"); // FIXME: May remove
+    echo("<pre>" . print_r($rows, $return = true) . "</pre>"); // FIXME: May remove
     populateTable($table_name, $columns, $rows);
   }
 
   // Populate table: consultants
   function populate_consultants() {
+    global $scripts_path;
+
     $table_name = "consultants";
     # FIXME: Temporarily ignoring some columns
     # $columns = array("id", "first_name", "last_name", "rating", "is_rejected");
-    $columns = array("last_name", "rating", "is_rejected");
+    $columns = array("last_name", "rating_id", "is_rejected");
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
-    $script = $scripts_path + "read-consultants.py";
+    $script = $scripts_path . "read-consultants.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
     if (!$rows) {
       report("<pre>Error: \$rows is empty. Make sure the script is only printing the desired result.</pre>");
     }
+    echo("<pre>" . print_r($rows, $return = true) . "</pre>"); // FIXME: May remove
+
+    // Remember rating id for "No rating"
+    $sql = "
+    SELECT id FROM ratings
+    WHERE ratings.name LIKE \"" . "No rating" . "\"
+    LIMIT 1
+    ";
+    $no_rating_id = mysql_result(query($sql, $sql, false), 0);
 
     foreach ($rows as $key => $row) {
-      $row["is_rejected"] = 0;
+      $row["is_rejected"] = 0; # FIXME: Temporary
+
+      if ($row["rating"] == null || $row["rating"] == "null") {
+        $row["rating_id"] = $no_rating_id;
+      } else {
+        $sql = "
+        SELECT id FROM ratings
+        WHERE ratings.name LIKE \"" . $row["rating"] . "\"
+        LIMIT 1
+        ";
+        $rating_id = mysql_result(query($sql, $sql, false), 0);
+        $row["rating_id"] = $rating_id;
+      }
+      unset($row["rating"]);
+
       $rows[$key] = $row;
     }
     echo("<pre>" . print_r($rows, $return = true) . "</pre>"); // FIXME: May remove
@@ -368,8 +482,8 @@
         // FIXME: Temporary fix to issue of passing 1-BIT value (0 or 1)
         if ($columns[$i] == "is_rejected") {
           $vals_string .= "0,";
-        } else if ($columns[$i] == "rating" && $val == "null") {
-          $vals_string .= "\"No rating\",";
+        } else if ($columns[$i] == "rating_id" && $val == "null") {
+          $vals_string .= "\"" . $no_rating_id . "\",";
         } else {
           $vals_string .= "\"" . $row[$columns[$i]] . "\",";
         }
@@ -386,17 +500,28 @@
 
   // Populate table: consultant_ratings
   function populate_consultant_ratings() {
+    global $scripts_path;
+
     $table_name = "consultant_ratings";
-    $columns = array("consultant_id", "area", "rating");
+    $columns = array("consultant_id", "area_id", "rating_id");
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
-    $script = $scripts_path + "read-consultant-ratings.py";
+    $script = $scripts_path . "read-consultant-ratings.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
     if (!$rows) {
       report("<pre>Error: \$rows is empty. Make sure the script is only printing the desired result.</pre>");
     }
+    echo("<pre>" . print_r($rows, $return = true) . "</pre>"); // FIXME: May remove
+
+    // Remember rating id for "No rating"
+    $sql = "
+    SELECT id FROM ratings_simple
+    WHERE ratings_simple.name LIKE \"" . "No rating" . "\"
+    LIMIT 1
+    ";
+    $no_rating_id = mysql_result(query($sql, $sql, false), 0);
 
     // FIXME: Prepare $rows before passing to populateTable
     foreach ($rows as $key => $row) {
@@ -407,8 +532,30 @@
       ";
       $consultant_id = mysql_result(query($sql, $sql, false), 0);
 
+      $sql = "
+      SELECT id FROM consultant_rating_areas
+      WHERE consultant_rating_areas.name LIKE \"" . $row["area"] . "\"
+      LIMIT 1
+      ";
+      $area_id = mysql_result(query($sql, $sql, false), 0);
+
+      $sql = "
+      SELECT id FROM ratings_simple
+      WHERE ratings_simple.name LIKE \"" . $row["rating"] . "\"
+      LIMIT 1
+      ";
+      $rating_id = mysql_result(query($sql, $sql, false), 0);
+
       $row["consultant_id"] = $consultant_id;
+      $row["area_id"] = $area_id;
+      if ($rating_id == "" || $rating_id === null) {
+        $row["rating_id"] = $no_rating_id;
+      } else {
+        $row["rating_id"] = $rating_id;
+      }
       unset($row["last_name"]);
+      unset($row["area"]);
+      unset($row["rating"]);
 
       $rows[$key] = $row;
     }
@@ -418,12 +565,14 @@
 
   // Populate table: consultant_partner_junction
   function populate_consultant_partner_junction() {
+    global $scripts_path;
+
     $table_name = "consultant_partner_junction";
     $columns = array("consultant_id", "partner_id");
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
-    $script = $scripts_path + "read-consultant-partner-junction.py";
+    $script = $scripts_path . "read-consultant-partner-junction.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
     if (!$rows) {
@@ -542,16 +691,16 @@
 
   // Populate tables that do no need to be read from the workbook
   function populateTables() {
-    populate_partners(); # FIXME: use separate PHP file, write-partners-pass1.php - for this
-    //populate_partner_strength_ratings(); # FIXME: Uncomment (works)
-    //populate_partner_technology_ratings(); # FIXME: Uncomment (works)
-    //populate_partner_solution_ratings(); # FIXME: Uncomment (works)
-    //populate_partner_misc_ratings(); # FIXME: Uncomment (works)
-    //populate_partner_vertical_junction(); # FIXME: Uncomment (works)
-    //populate_partner_region_junction(); # FIXME: Uncomment (works)
-    //populate_consultants(); # FIXME: MAKESHIFT INSERTS - whole name stored in last_name, and is_rejected set to 0 for all rows
-    //populate_consultant_ratings();# FIXME: Depends on MAKESHIFT consultants table
-    //populate_consultant_partner_junction(); # FIXME: Used MAKESHIFT consultants table; not all partner ids found in partners
+    // populate_partners(); # FIXME: Uncomment (works)
+    // populate_partner_strength_ratings(); # FIXME: Uncomment (works)
+    // populate_partner_technology_ratings(); # FIXME: Uncomment (works)
+    // populate_partner_solution_ratings(); # FIXME: Uncomment (works)
+    // populate_partner_misc_ratings(); # FIXME: Uncomment (works)
+    // populate_partner_vertical_junction(); # FIXME: Uncomment (works)
+    // populate_partner_region_junction(); # FIXME: Uncomment (works)
+    // populate_consultants(); # FIXME: MAKESHIFT INSERTS - whole name stored in last_name, and is_rejected set to 0 for all rows
+    // populate_consultant_ratings();# FIXME: Depends on MAKESHIFT consultants table
+    // populate_consultant_partner_junction(); # FIXME: Used MAKESHIFT consultants table; not all partner ids found in partners
   }
 
   // Main function
