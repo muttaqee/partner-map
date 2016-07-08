@@ -79,7 +79,7 @@ def encodeRow(x, y, rating_value):
     rating = rating_value
 
     json_row += getNameValuePair("partner_name", "\"" + partner_name + "\"") + ","
-    json_row += getNameValuePair("strength", "\"" + strength + "\"") + ","
+    json_row += getNameValuePair("partner_strength", "\"" + strength + "\"") + ","
     json_row += getNameValuePair("rating", "\"" + rating + "\"")
 
     return "{" + json_row + "}"

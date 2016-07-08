@@ -62,7 +62,7 @@ def encodeRow(y):
     last_name = str.strip(ws.cell(row = y, column = 1).value)
     tmp = ws.cell(row = y, column = 2).value
     if tmp:
-        rating = tmp
+        rating = tmp.strip()
     else:
         rating = "null"
 
