@@ -34,17 +34,87 @@ Style, document.
 
 /* Model */
 
-function Rating()
+/*
+Idea:
+-- Upon prompt to query, load entities of interest from db to this model
+-- Write from this model to view as necessary
+*/
+
+function Rating(id, name) {
+  this.id = id;
+  this.name = name;
+}
+
+function RatingSimple(id, name) {
+  this.id = id;
+  this.name = name;
+}
+
+function LookupEntity(id, name) {
+  this.id = id;
+  this.name = name;
+
+  this.table = "";
+}
+
+function RatingPair(entity, rating) {
+  this.entity = entity; // Has own id and table
+  this.rating = rating; // Has own id
+}
+
+// Encapsulates a set of entity-rating pairs (e.g. partner technology ratings)
+function RatingSet(name) {
+  this.name = name; // Name of area or topic of ratings (e.g. from technologies)
+  this.set = []; // Set of entity-rating pairs
+
+  this.add = function(rating_pair) {
+    if (rating_pair instanceof RatingPair) {
+      this.set.push(rating_pair);
+    }
+  }
+}
+
+// Use to fill content
+function Partner(id, name) {
+  this.id = id;
+  this.name = name;
+
+  this.is_partner_plus = false;
+  this.notes = "";
+
+  // Contains rating sets, each of which contain rating pairs
+  this.ratings = []; // E.g. technologies, solutions, misc
+  this.features = []; // E.g. verticals, regions
+
+  this.opportunities = []; // (Associated)
+  this.consultants = []; // (Associated)
+
+  this.addRatingSet = function(rating_set) {
+    if (rating_set instanceof RatingSet) {
+      this.ratings.push(rating_set);
+    }
+  }
+
+  this.addRatingPair = function(rating_set, rating_pair) {
+    if (rating_pair instanceof RatingPair) {
+      if (rating_set instanceof RatingSet) {
+        this.ratings[rating_set.name].push(rating_pair);
+      } else if (typeof rating_set == "string") {
+        this.ratings[rating_set].push(rating_pair);
+      }
+    }
+  }
+}
 
 function Model() {
-  // Primary entities
-  var partners = [];
-  var consultants = [];
-  var opportunities = [];
-
   // Lookup entities
   var ratings = []; // "id":"A+"
   var ratings_simple = []; // "id":"A"
+
+  // Primary entities
+  var partners = []; // Loaded from db
+  var consultants = []; // Loaded from db
+  var opportunities = []; // Loaded from db
 
   var partner_strengths = []; // "id":"name"
   var technologies = [];
@@ -119,7 +189,7 @@ function Model() {
   }
 }
 
-/* View */
+/* View: stores and manipulates DOM elements as objects */
 
 function View() {
 
@@ -128,8 +198,36 @@ function View() {
 var m = new Model();
 var v = new View();
 
+// Load lookup values from db: ratings, filters (names, ids)
+function load() {
+  // FIXME
+    alert("load"); // FIXME: Remove
+
+    // Load ratings and ratings_simple into model
+
+    // Load
+}
+
+// Use loaded values to populate view
+function buildView() {
+  // FIXME
+    alert("buildView"); // FIXME: Remove
+}
+
+// Program start
+function main() {
+  alert("main"); // FIXME: Remove
+  load();
+  setTimeout(function() {
+    buildView();
+  }, 5000);
+}
+
+// Program start invocation
+main(); // FIXME: Test - does this run? Before or after $.ready(...) ?
+
+// Program ready & event handling
 $(document).ready(function() {
-  // Listeners
 
   // FIXME: Remove - temporary
   $(document).click(function() {
@@ -140,17 +238,6 @@ $(document).ready(function() {
     });
   })
 
-  // Program start
-  function execute() {
-    alert("Executing...");
-    // load();
-    // setTimeout(function() {
-    //   build();
-    // }, 100);
-  }
-
-  // Program start
-  execute();
 });
 
 //------------------------------------------------------------------------------
@@ -166,6 +253,17 @@ $(document).ready(function() {
 //------------------------------------------------------------------------------
 // HELPER/UTILITY FUNCTIONS
 //------------------------------------------------------------------------------
+
+// Helper: all-purpose query
+function query(query_str, callback) {
+  $.post(
+    queryScript,
+    {query: query_str},
+    function(data, status) {
+      callback(data);
+    }
+  );
+}
 
 // Helper: query db with SELECT <...> FROM <...> WHERE <...>
 function selectQuery(select_str, from_str, where_str, callback) {
