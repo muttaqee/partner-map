@@ -137,7 +137,7 @@
 
   // Create table: ratings
   function create_ratings() {
-    $table_name = "ratings";
+    $table_name = "ratings_lookup";
     dropTable($table_name);
 
     // Construct query
@@ -147,14 +147,14 @@
       id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
       name VARCHAR($RATING_SIZE) NOT NULL UNIQUE,
       PRIMARY KEY (id)
-    )"; # FIXME: Add E and F to ratings?
+    )" COMMENT = 'Ratings'; # FIXME: Add E and F to ratings?
 
     query($sql, "Created $table_name table", false);
   }
 
   // Create table: ratings_simple
   function create_ratings_simple() {
-    $table_name = "ratings_simple";
+    $table_name = "ratings_simple_lookup";
     dropTable($table_name);
 
     // Construct query
@@ -164,14 +164,14 @@
       id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
       name VARCHAR($RATING_SIZE) NOT NULL UNIQUE,
       PRIMARY KEY (id)
-    )";
+    )" COMMENT = 'Ratings (simple)';
 
     query($sql, "Created $table_name table", false);
   }
 
   // Create table: partners
   function create_partners() {
-    $table_name = "partners";
+    $table_name = "partners_primary";
     dropTable($table_name);
 
     // Construct query
@@ -185,14 +185,14 @@
       is_partner_plus BIT($BOOLEAN_SIZE), /* FIXME: Remove and save for opportunity_partner_junction? */
       notes VARCHAR($NOTE_SIZE),
       PRIMARY KEY (id)
-    )";
+    )" COMMENT = 'Partners';
 
     query($sql, "Created $table_name table", false);
   }
 
   // Create table: partner_strengths
   function create_partner_strengths() {
-    $table_name = "partner_strengths";
+    $table_name = "partner_strengths_lookup";
     dropTable($table_name);
 
     // Construct query
@@ -202,7 +202,7 @@
       id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
       name VARCHAR($NAME_SIZE) NOT NULL UNIQUE,
       PRIMARY KEY (id)
-    )";
+    )" COMMENT = 'Partner strengths';
 
     query($sql, "Created $table_name table", false);
   }
@@ -224,14 +224,14 @@
       FOREIGN KEY (partner_id) REFERENCES partners(id),
       FOREIGN KEY (partner_strength_id) REFERENCES partner_strengths(id),
       FOREIGN KEY (rating_id) REFERENCES ratings_simple(id)
-    )";
+    )" COMMENT = 'Partner strength ratings';
 
     query($sql, "Created $table_name table", false);
   }
 
   // Create table: technologies
   function create_technologies() {
-    $table_name = "technologies";
+    $table_name = "technologies_lookup";
     dropTable($table_name);
 
     // Construct query
@@ -243,7 +243,7 @@
       name VARCHAR($NAME_SIZE) NOT NULL,
       PRIMARY KEY (id),
       CONSTRAINT UNIQUE (type, name)
-    )";
+    )" COMMENT = 'Technologies';
 
     query($sql, "Created $table_name table", false);
   }
@@ -264,14 +264,14 @@
       FOREIGN KEY (partner_id) REFERENCES partners(id),
       FOREIGN KEY (technology_id) REFERENCES technologies(id),
       FOREIGN KEY (rating_id) REFERENCES ratings_simple(id)
-    )";
+    )" COMMENT = 'Partner technology ratings';
 
     query($sql, "Created $table_name table", false);
   }
 
   // Create table: solutions
   function create_solutions() {
-    $table_name = "solutions";
+    $table_name = "solutions_lookup";
     dropTable($table_name);
 
     // Construct query
@@ -283,7 +283,7 @@
       name VARCHAR($NAME_SIZE) NOT NULL,
       PRIMARY KEY (id),
       CONSTRAINT UNIQUE (type, name)
-    )";
+    )" COMMENT = 'Solutions';
 
     query($sql, "Created $table_name table", false);
   }
@@ -304,14 +304,14 @@
       FOREIGN KEY (partner_id) REFERENCES partners(id),
       FOREIGN KEY (solution_id) REFERENCES solutions(id),
       FOREIGN KEY (rating_id) REFERENCES ratings_simple(id)
-    )";
+    )" COMMENT = 'Partner solution ratings';
 
     query($sql, "Created $table_name table", false);
   }
 
   // Create table: misc
   function create_misc() {
-    $table_name = "misc";
+    $table_name = "misc_lookup";
     dropTable($table_name);
 
     // Construct query
@@ -321,7 +321,7 @@
       id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
       name VARCHAR($NAME_SIZE) NOT NULL UNIQUE,
       PRIMARY KEY (id)
-    )";
+    )" COMMENT = 'Misc';
 
     query($sql, "Created $table_name table", false);
   }
@@ -343,14 +343,14 @@
       FOREIGN KEY (partner_id) REFERENCES partners(id),
       FOREIGN KEY (misc_id) REFERENCES misc(id),
       FOREIGN KEY (rating_id) REFERENCES ratings_simple(id)
-    )";
+    )" COMMENT = 'Partner misc ratings';
 
     query($sql, "Created $table_name table", false);
   }
 
   // Create table: verticals
   function create_verticals() {
-    $table_name = "verticals";
+    $table_name = "verticals_lookup";
     dropTable($table_name);
 
     // Construct query
@@ -360,7 +360,7 @@
       id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
       name VARCHAR($NAME_SIZE) NOT NULL UNIQUE,
       PRIMARY KEY (id)
-    )";
+    )" COMMENT = 'Verticals';
 
     query($sql, "Created $table_name table", false);
   }
@@ -378,14 +378,14 @@
       CONSTRAINT pk PRIMARY KEY (partner_id, vertical_id),
       FOREIGN KEY (partner_id) REFERENCES partners(id),
       FOREIGN KEY (vertical_id) REFERENCES verticals(id)
-    )";
+    )" COMMENT = 'Partner-vertical junction';
 
     query($sql, "Created $table_name table", false);
   }
 
   // Create table: regions
   function create_regions() {
-    $table_name = "regions";
+    $table_name = "regions_lookup";
     dropTable($table_name);
 
     // Construct query
@@ -395,7 +395,7 @@
       id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
       name VARCHAR($NAME_SIZE) NOT NULL UNIQUE,
       PRIMARY KEY (id)
-    )";
+    )" COMMENT = 'Regions';
 
     query($sql, "Created $table_name table", false);
   }
@@ -413,14 +413,14 @@
       CONSTRAINT pk PRIMARY KEY (partner_id, region_id),
       FOREIGN KEY (partner_id) REFERENCES partners(id),
       FOREIGN KEY (region_id) REFERENCES regions(id)
-    )";
+    )" COMMENT = 'Partner-region junction';
 
     query($sql, "Created $table_name table", false);
   }
 
   // Create table: consultants
   function create_consultants() {
-    $table_name = "consultants";
+    $table_name = "consultants_primary";
     dropTable($table_name);
 
     // Construct query
@@ -436,7 +436,7 @@
       is_rejected BIT($BOOLEAN_SIZE) NOT NULL,
       PRIMARY KEY (id),
       FOREIGN KEY (rating_id) REFERENCES ratings(id)
-    )";
+    )" COMMENT = 'Consultants';
 
     query($sql, "Created $table_name table", false);
   }
@@ -453,7 +453,7 @@
       id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
       name VARCHAR($NAME_SIZE) NOT NULL UNIQUE,
       PRIMARY KEY (id)
-    )";
+    )" COMMENT = 'Consultant rating areas';
 
     query($sql, "Created $table_name table", false);
   }
@@ -466,14 +466,14 @@
     // Construct query
     global $ID_SIZE;
     $sql = "CREATE TABLE $table_name (
-      consultant_id INT($ID_SIZE) NOT NULL,
+      consultant_id INT($ID_SIZE) NOT NULL,UNIQUE 
       area_id INT($ID_SIZE) NOT NULL,
       rating_id INT($ID_SIZE) NOT NULL,
       CONSTRAINT pk PRIMARY KEY (consultant_id, area_id),
       FOREIGN KEY (consultant_id) REFERENCES consultants(id),
       FOREIGN KEY (area_id) REFERENCES consultant_rating_areas(id),
       FOREIGN KEY (rating_id) REFERENCES ratings_simple(id)
-    )";
+    )" COMMENT = 'Consultant ratings';
 
     query($sql, "Created $table_name table", false);
   }
@@ -484,7 +484,7 @@
 
   // Create table: opportunity_statuses
   function create_opportunity_statuses() {
-    $table_name = "opportunity_statuses";
+    $table_name = "opportunity_statuses_lookup";
     dropTable($table_name);
 
     // Construct query
@@ -494,14 +494,14 @@
       id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
       name VARCHAR($NAME_SIZE) NOT NULL UNIQUE,
       PRIMARY KEY (id)
-    )";
+    )" COMMENT = 'Opportunity statuses';
 
     query($sql, "Created $table_name table", false);
   }
 
   // Create table: opportunities
   function create_opportunities() {
-    $table_name = "opportunities";
+    $table_name = "opportunities_primary";
     dropTable($table_name);
 
     // Construct query
@@ -516,7 +516,7 @@
       date_created DATE, # i.e. date this opp was opened/created (not the duration, which is stored in the junctions referencing this table)
       PRIMARY KEY (id),
       FOREIGN KEY (status_id) REFERENCES opportunity_statuses(id)
-    )";
+    )" COMMENT = 'Opportunities';
 
     query($sql, "Created $table_name table", false);
   }
@@ -534,7 +534,7 @@
       UNIQUE KEY (opportunity_id, technology_id),
       FOREIGN KEY (opportunity_id) REFERENCES opportunities(id),
       FOREIGN KEY (technology_id) REFERENCES technologies(id)
-    )";
+    )" COMMENT = 'Opportunity-technology junction';
 
     query($sql, "Created $table_name table", false);
   }
@@ -552,7 +552,7 @@
       UNIQUE KEY (opportunity_id, solution_id),
       FOREIGN KEY (opportunity_id) REFERENCES opportunities(id),
       FOREIGN KEY (solution_id) REFERENCES solutions(id)
-    )";
+    )" COMMENT = 'Opportunity-solution junction';
 
     query($sql, "Created $table_name table", false);
   }
@@ -570,7 +570,7 @@
       UNIQUE KEY (opportunity_id, misc_id),
       FOREIGN KEY (opportunity_id) REFERENCES opportunities(id),
       FOREIGN KEY (misc_id) REFERENCES misc(id)
-    )";
+    )" COMMENT = 'Opportunity-misc junction';
 
     query($sql, "Created $table_name table", false);
   }
@@ -590,7 +590,7 @@
       CONSTRAINT pk PRIMARY KEY (opportunity_id, partner_id),
       FOREIGN KEY (opportunity_id) REFERENCES opportunities(id),
       FOREIGN KEY (partner_id) REFERENCES partners(id)
-    )";
+    )" COMMENT = 'Opportunity-partner junction';
 
     query($sql, "Created $table_name table", false);
   }
@@ -610,7 +610,7 @@
       CONSTRAINT pk PRIMARY KEY (opportunity_id, consultant_id),
       FOREIGN KEY (opportunity_id) REFERENCES opportunities(id),
       FOREIGN KEY (consultant_id) REFERENCES consultants(id)
-    )";
+    )" COMMENT = 'Opportunity-consultant junction';
 
     query($sql, "Created $table_name table", false);
   }
@@ -630,7 +630,7 @@
       CONSTRAINT pk PRIMARY KEY (consultant_id, partner_id),
       FOREIGN KEY (consultant_id) REFERENCES consultants(id),
       FOREIGN KEY (partner_id) REFERENCES partners(id)
-    )";
+    )" COMMENT = 'Consultant-partner junction';
 
     query($sql, "Created $table_name table", false);
   }

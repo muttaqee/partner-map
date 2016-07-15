@@ -99,17 +99,37 @@ function Partner(id, name) {
     if (rating_pair instanceof RatingPair) {
       if (rating_set instanceof RatingSet) {
         this.ratings[rating_set.name].push(rating_pair);
-      } else if (typeof rating_set == "string") {
+      } else if (typeof rating_set === "string") {
         this.ratings[rating_set].push(rating_pair);
       }
     }
   }
 }
 
+function Table(name, columns) {
+  this.name = name;
+  this.columns = columns;
+
+  this.addColumns = function(columns) {
+    if (typeof columns === "object") {
+      // Push each column to the end of the columns array
+      this.columns.push.apply(this.columns, columns);
+    }
+  }
+}
+
 function Model() {
+  // Database and table names
+  var dbname = "";
+  var tables = {
+    primary: [],
+    lookup: [],
+    junction: []
+  };
+
   // Lookup entities
-  var ratings = []; // "id":"A+"
-  var ratings_simple = []; // "id":"A"
+  this.ratings = {}; // "id":"A+"
+  this.ratings_simple = {}; // "id":"A"
 
   // Primary entities
   var partners = []; // Loaded from db
@@ -129,6 +149,14 @@ function Model() {
     partner_solution_ratings: [],
 
   };
+
+  this.addTable = function(table_name) {
+    if (typeof table_name == "string") {
+      if (table_name.endsWith("_junction") || table_name.endsWith("_ratings")) {
+        //tables.junction // FIXME: Left off - EOB 7/14
+      }
+    }
+  }
 
   this.addPartner = function() {
     // FIXME: INSERT PARTNER IF DOES NOT EXIST
@@ -192,35 +220,59 @@ function Model() {
 /* View: stores and manipulates DOM elements as objects */
 
 function View() {
+  // FIXME
+  // Store base view elements
 
+  // Store resuable view templates (result card, expanded profile cards, forms)
+
+  // Render base view elements
+
+  // Render
 }
 
 var m = new Model();
 var v = new View();
 
+function buildModel() {
+  // FIXME
+  var query_str;
+
+  // ratings and ratings_simple tables
+  query_str = "SELECT * FROM ratings;";
+  query(query_str, function(data) {
+
+  });
+  query_str = "SELECT * FROM ratings_simple;";
+  query(query_str, function(data)) {
+
+  }
+
+  // Lookup tables
+}
+
+function buildView() {
+  // FIXME
+}
+
 // Load lookup values from db: ratings, filters (names, ids)
 function load() {
   // FIXME
-    alert("load"); // FIXME: Remove
+    // Load values into model
+    buildModel();
 
-    // Load ratings and ratings_simple into model
+    // Build view elements
+    buildView();
 
-    // Load
-}
-
-// Use loaded values to populate view
-function buildView() {
-  // FIXME
-    alert("buildView"); // FIXME: Remove
+    // Render view
+    // v.render();
 }
 
 // Program start
 function main() {
-  alert("main"); // FIXME: Remove
   load();
   setTimeout(function() {
     buildView();
-  }, 5000);
+  }, 100);
 }
 
 // Program start invocation
@@ -236,7 +288,7 @@ $(document).ready(function() {
       alert("Queried");
       $("body").html("<pre>" + result + "</pre>");
     });
-  })
+  });
 
 });
 
@@ -247,8 +299,6 @@ $(document).ready(function() {
 //------------------------------------------------------------------------------
 // MVC Abstraction // FIXME: Remove?
 //------------------------------------------------------------------------------
-
-
 
 //------------------------------------------------------------------------------
 // HELPER/UTILITY FUNCTIONS
