@@ -501,7 +501,7 @@
       rating_id int($ID_SIZE) COMMENT 'Overall rating', # FIXME: Added 6-6-16. Alter this?
       is_rejected BIT($BOOLEAN_SIZE) NOT NULL COMMENT 'Rejected',
       PRIMARY KEY (id),
-      FOREIGN KEY (rating_id) REFERENCES ratings(id)
+      FOREIGN KEY (rating_id) REFERENCES ratings_lookup(id)
     ) COMMENT 'Consultants'";
 
     query($sql, "Created $table_name table", false);
@@ -871,6 +871,45 @@
     }
   }
 
+  // Stores table name => table id pairs
+  global $id = 1;
+  global $tables = array(
+    'ratings_lookup'=>$id++,
+    'ratings_simple_lookup'=>$id++,
+    'partners_primary'=>$id++,
+    'partner_strengths_lookup'=>$id++,
+    'partner_strength_ratings'=>$id++,
+    'technologies_lookup'=>$id++,
+    'partner_technology_ratings'=>$id++,
+    'solutions_lookup'=>$id++,
+    'partner_solution_ratings'=>$id++,
+    'misc_lookup'=>$id++,
+    'partner_misc_ratings'=>$id++,
+    'verticals_lookup'=>$id++,
+    'partner_vertical_junction'=>$id++,
+    'regions_lookup'=>$id++,
+    'partner_region_junction'=>$id++,
+    'consultants_primary'=>$id++,
+    'consultant_rating_areas_lookup'=>$id++,
+    'consultant_ratings'=>$id++,
+    'customers_primary'=>$id++,
+    'opportunity_statuses_lookup'=>$id++,
+    'opportunities_primary'=>$id++,
+    'opportunity_partner_junction'=>$id++,
+    'opportunity_consultant_junction'=>$id++,
+    'projects_primary'=>$id++,
+    'project_technology_junction'=>$id++,
+    'project_solution_junction'=>$id++,
+    'project_misc_junction'=>$id++,
+    'project_partner_junction'=>$id++,
+    'project_consultant_junction'=>$id++,
+    'consultant_partner_junction'=>$id++
+  );
+  // Helper: get table id from name
+  function getTableId($table_name) {
+    return $tables[$table_name];
+  }
+
   // Populate table: table types
   function populate_table_types_meta() {
     $table_name = "table_types_meta";
@@ -891,8 +930,9 @@
 
   // Populate table: tables_meta
   function populate_tables_meta() {
+    global $tables;
     $table_name = "tables_meta";
-    $columns = array("name", "label", "type", "is_searchable", "rating_table");
+    $columns = array("name", "label", "type", "is_searchable", "rating_table", "id");
     $rows = array(
       array(
         $columns[0]=>"ratings_lookup",
@@ -900,7 +940,7 @@
         $columns[2]=>"lookup",
         $columns[3]=>0,
         $columns[4]=>"",
-        $columns[5]=>1
+        $columns[5]=>$tables['ratings_lookup']
       ),
       array(
         $columns[0]=>"ratings_simple_lookup",
@@ -908,7 +948,7 @@
         $columns[2]=>"lookup",
         $columns[3]=>0,
         $columns[4]=>"",
-        $columns[5]=>2
+        $columns[5]=>$tables['ratings_simple_lookup']
       ),
       array(
         $columns[0]=>"partners_primary",
@@ -916,7 +956,7 @@
         $columns[2]=>"primary",
         $columns[3]=>1,
         $columns[4]=>"",
-        $columns[5]=>3
+        $columns[5]=>$tables['partners_primary']
       ),
       array(
         $columns[0]=>"partner_strengths_lookup",
@@ -924,7 +964,7 @@
         $columns[2]=>"lookup",
         $columns[3]=>0,
         $columns[4]=>"ratings_simple_lookup",
-        $columns[5]=>4
+        $columns[5]=>$tables['partner_strengths_lookup']
       ),
       array(
         $columns[0]=>"partner_strength_ratings",
@@ -932,7 +972,7 @@
         $columns[2]=>"ratings",
         $columns[3]=>0,
         $columns[4]=>"ratings_simple_lookup",
-        $columns[5]=>5
+        $columns[5]=>$tables['partner_strength_ratings']
       ),
       array(
         $columns[0]=>"technologies_lookup",
@@ -940,7 +980,7 @@
         $columns[2]=>"lookup",
         $columns[3]=>0,
         $columns[4]=>"ratings_simple_lookup",
-        $columns[5]=>6
+        $columns[5]=>$tables['technologies_lookup']
       ),
       array(
         $columns[0]=>"partner_technology_ratings",
@@ -948,7 +988,7 @@
         $columns[2]=>"ratings",
         $columns[3]=>0,
         $columns[4]=>"ratings_simple_lookup",
-        $columns[5]=>7
+        $columns[5]=>$tables['partner_technology_ratings']
       ),
       array(
         $columns[0]=>"solutions_lookup",
@@ -956,7 +996,7 @@
         $columns[2]=>"lookup",
         $columns[3]=>0,
         $columns[4]=>"ratings_simple_lookup",
-        $columns[5]=>8
+        $columns[5]=>$tables['solutions_lookup']
       ),
       array(
         $columns[0]=>"partner_solution_ratings",
@@ -964,7 +1004,7 @@
         $columns[2]=>"ratings",
         $columns[3]=>0,
         $columns[4]=>"ratings_simple_lookup",
-        $columns[5]=>9
+        $columns[5]=>$tables['partner_solution_ratings']
       ),
       array(
         $columns[0]=>"misc_lookup",
@@ -972,7 +1012,7 @@
         $columns[2]=>"lookup",
         $columns[3]=>0,
         $columns[4]=>"ratings_simple_lookup",
-        $columns[5]=>10
+        $columns[5]=>$tables['misc_lookup']
       ),
       array(
         $columns[0]=>"partner_misc_ratings",
@@ -980,7 +1020,7 @@
         $columns[2]=>"ratings",
         $columns[3]=>0,
         $columns[4]=>"ratings_simple_lookup",
-        $columns[5]=>11
+        $columns[5]=>$tables['partner_misc_ratings']
       ),
       array(
         $columns[0]=>"verticals_lookup",
@@ -988,7 +1028,7 @@
         $columns[2]=>"lookup",
         $columns[3]=>0,
         $columns[4]=>"",
-        $columns[5]=>12
+        $columns[5]=>$tables['verticals_lookup']
       ),
       array(
         $columns[0]=>"partner_vertical_junction",
@@ -996,7 +1036,7 @@
         $columns[2]=>"primary-lookup-junction",
         $columns[3]=>0,
         $columns[4]=>"",
-        $columns[5]=>13
+        $columns[5]=>$tables['partner_vertical_junction']
       ),
       array(
         $columns[0]=>"regions_lookup",
@@ -1004,7 +1044,7 @@
         $columns[2]=>"lookup",
         $columns[3]=>0,
         $columns[4]=>"",
-        $columns[5]=>14
+        $columns[5]=>$tables['regions_lookup']
       ),
       array(
         $columns[0]=>"partner_region_junction",
@@ -1012,7 +1052,7 @@
         $columns[2]=>"primary-lookup-junction",
         $columns[3]=>0,
         $columns[4]=>"",
-        $columns[5]=>15
+        $columns[5]=>$tables['partner_region_junction']
       ),
       array(
         $columns[0]=>"consultants_primary",
@@ -1020,7 +1060,7 @@
         $columns[2]=>"primary",
         $columns[3]=>1,
         $columns[4]=>"ratings_lookup",
-        $columns[5]=>16
+        $columns[5]=>$tables['consultants_primary']
       ),
       array(
         $columns[0]=>"consultant_rating_areas",
@@ -1028,7 +1068,7 @@
         $columns[2]=>"lookup",
         $columns[3]=>0,
         $columns[4]=>"ratings_lookup",
-        $columns[5]=>17
+        $columns[5]=>$tables['consultant_rating_areas']
       ),
       array(
         $columns[0]=>"consultant_ratings",
@@ -1036,7 +1076,7 @@
         $columns[2]=>"ratings",
         $columns[3]=>0,
         $columns[4]=>"ratings_simple_lookup",
-        $columns[5]=>18
+        $columns[5]=>$tables['consultant_ratings']
       ),
       array(
         $columns[0]=>"customers_primary",
@@ -1044,7 +1084,7 @@
         $columns[2]=>"primary",
         $columns[3]=>1,
         $columns[4]=>"",
-        $columns[5]=>19
+        $columns[5]=>$tables['customers_primary']
       ),
       array(
         $columns[0]=>"opportunity_statuses_lookup",
@@ -1052,7 +1092,7 @@
         $columns[2]=>"lookup",
         $columns[3]=>0,
         $columns[4]=>"",
-        $columns[5]=>20
+        $columns[5]=>$tables['opportunity_statuses_lookup']
       ),
       array(
         $columns[0]=>"opportunities_primary",
@@ -1060,7 +1100,7 @@
         $columns[2]=>"primary",
         $columns[3]=>1,
         $columns[4]=>"",
-        $columns[5]=>21
+        $columns[5]=>$tables['opportunities_primary']
       ),
       array(
         $columns[0]=>"opportunity_partner_junction",
@@ -1068,7 +1108,7 @@
         $columns[2]=>"primary-primary-junction",
         $columns[3]=>0,
         $columns[4]=>"",
-        $columns[5]=>22
+        $columns[5]=>$tables['opportunity_partner_junction']
       ),
       array(
         $columns[0]=>"opportunity_consultant_junction",
@@ -1076,7 +1116,7 @@
         $columns[2]=>"primary-primary-junction",
         $columns[3]=>0,
         $columns[4]=>"",
-        $columns[5]=>23
+        $columns[5]=>$tables['opportunity_consultant_junction']
       ),
       array(
         $columns[0]=>"projects_primary",
@@ -1084,7 +1124,7 @@
         $columns[2]=>"primary",
         $columns[3]=>0,
         $columns[4]=>"",
-        $columns[5]=>24
+        $columns[5]=>$tables['projects_primary']
       ),
       array(
         $columns[0]=>"project_technology_junction",
@@ -1092,7 +1132,7 @@
         $columns[2]=>"primary-lookup-junction",
         $columns[3]=>0,
         $columns[4]=>"",
-        $columns[5]=>25
+        $columns[5]=>$tables['project_technology_junction']
       ),
       array(
         $columns[0]=>"project_solution_junction",
@@ -1100,7 +1140,7 @@
         $columns[2]=>"primary-lookup-junction",
         $columns[3]=>0,
         $columns[4]=>"",
-        $columns[5]=>26
+        $columns[5]=>$tables['project_solution_junction']
       ),
       array(
         $columns[0]=>"project_misc_junction",
@@ -1108,7 +1148,7 @@
         $columns[2]=>"primary-lookup-junction",
         $columns[3]=>0,
         $columns[4]=>"",
-        $columns[5]=>27
+        $columns[5]=>$tables['project_misc_junction']
       ),
       array(
         $columns[0]=>"project_partner_junction",
@@ -1116,7 +1156,7 @@
         $columns[2]=>"primary-junction-junction",
         $columns[3]=>0,
         $columns[4]=>"",
-        $columns[5]=>28
+        $columns[5]=>$tables['project_partner_junction']
       ),
       array(
         $columns[0]=>"project_consultant_junction",
@@ -1124,7 +1164,7 @@
         $columns[2]=>"primary-junction-junction",
         $columns[3]=>0,
         $columns[4]=>"",
-        $columns[5]=>29
+        $columns[5]=>$tables['project_consultant_junction']
       ),
       array(
         $columns[0]=>"consultant_partner_junction",
@@ -1132,7 +1172,206 @@
         $columns[2]=>"primary-primary-junction",
         $columns[3]=>0,
         $columns[4]=>"",
-        $columns[5]=>30
+        $columns[5]=>$tables['consultant_partner_junction']
+      )
+    );
+    populateTable($table_name, $columns, $rows);
+  }
+
+  // Populate table: table_fk_meta
+  function populate_table_fk_meta() {
+    $table_name = "table_fk_meta";
+    $columns = array("table_id", "reference_table_id", "fk_column");
+    $rows = array(
+      array(
+        $columns[0]=>getTableId('partner_strength_ratings'),
+        $columns[1]=>getTableId('partners_primary'),
+        $columns[2]=>"primary_id"
+      ),
+      array(
+        $columns[0]=>getTableId('partner_strength_ratings'),
+        $columns[1]=>getTableId('partner_strengths_lookup'),
+        $columns[2]=>"lookup_id"
+      ),
+      array(
+        $columns[0]=>getTableId('partner_strength_ratings'),
+        $columns[1]=>getTableId('ratings_simple_lookup'),
+        $columns[2]=>"rating_id"
+      ),
+      array(
+        $columns[0]=>getTableId('partner_technology_ratings'),
+        $columns[1]=>getTableId('partners_primary'),
+        $columns[2]=>"primary_id"
+      ),
+      array(
+        $columns[0]=>getTableId('partner_technology_ratings'),
+        $columns[1]=>getTableId('technologies_lookup'),
+        $columns[2]=>"lookup_id"
+      ),
+      array(
+        $columns[0]=>getTableId('partner_technology_ratings'),
+        $columns[1]=>getTableId('ratings_simple_lookup'),
+        $columns[2]=>"rating_id"
+      ),
+      array(
+        $columns[0]=>getTableId('partner_solution_ratings'),
+        $columns[1]=>getTableId('partners_primary'),
+        $columns[2]=>"primary_id"
+      ),
+      array(
+        $columns[0]=>getTableId('partner_solution_ratings'),
+        $columns[1]=>getTableId('solutions_lookup'),
+        $columns[2]=>"lookup_id"
+      ),
+      array(
+        $columns[0]=>getTableId('partner_solution_ratings'),
+        $columns[1]=>getTableId('ratings_simple_lookup'),
+        $columns[2]=>"rating_id"
+      ),
+      array(
+        $columns[0]=>getTableId('partner_misc_ratings'),
+        $columns[1]=>getTableId('partners_primary'),
+        $columns[2]=>"primary_id"
+      ),
+      array(
+        $columns[0]=>getTableId('partner_misc_ratings'),
+        $columns[1]=>getTableId('misc_lookup'),
+        $columns[2]=>"lookup_id"
+      ),
+      array(
+        $columns[0]=>getTableId('partner_misc_ratings'),
+        $columns[1]=>getTableId('ratings_simple_lookup'),
+        $columns[2]=>"rating_id"
+      ),
+      array(
+        $columns[0]=>getTableId('partner_vertical_junction'),
+        $columns[1]=>getTableId('partners_primary'),
+        $columns[2]=>"primary_id"
+      ),
+      array(
+        $columns[0]=>getTableId('partner_vertical_junction'),
+        $columns[1]=>getTableId('verticals_lookup'),
+        $columns[2]=>"lookup_id"
+      ),
+      array(
+        $columns[0]=>getTableId('partner_region_junction'),
+        $columns[1]=>getTableId('partners_primary'),
+        $columns[2]=>"primary_id"
+      ),
+      array(
+        $columns[0]=>getTableId('partner_region_junction'),
+        $columns[1]=>getTableId('regions_lookup'),
+        $columns[2]=>"lookup_id"
+      ),
+      array(
+        $columns[0]=>getTableId('consultants_primary'),
+        $columns[1]=>getTableId('ratings_lookup'),
+        $columns[2]=>"rating_id"
+      ),
+      array(
+        $columns[0]=>getTableId('consultant_ratings'),
+        $columns[1]=>getTableId('consultants'),
+        $columns[2]=>"primary_id"
+      ),
+      array(
+        $columns[0]=>getTableId('consultant_ratings'),
+        $columns[1]=>getTableId('consultant_rating_areas_lookup'),
+        $columns[2]=>"lookup_id"
+      ),
+      array(
+        $columns[0]=>getTableId('consultant_ratings'),
+        $columns[1]=>getTableId('ratings_simple'),
+        $columns[2]=>"rating_id"
+      ),
+      array(
+        $columns[0]=>getTableId('opportunities_primary'),
+        $columns[1]=>getTableId('opportunity_statuses'),
+        $columns[2]=>"status_id"
+      ),
+      array(
+        $columns[0]=>getTableId('opportunity_partner_junction'),
+        $columns[1]=>getTableId('opportunities_primary'),
+        $columns[2]=>"opportunity_id"
+      ),
+      array(
+        $columns[0]=>getTableId('opportunity_partner_junction'),
+        $columns[1]=>getTableId('partners_primary'),
+        $columns[2]=>"partner_id"
+      ),
+      array(
+        $columns[0]=>getTableId('opportunity_consultant_junction'),
+        $columns[1]=>getTableId('opportunities_primary'),
+        $columns[2]=>"opportunity_id"
+      ),
+      array(
+        $columns[0]=>getTableId('opportunity_consultant_junction'),
+        $columns[1]=>getTableId('consultants_primary'),
+        $columns[2]=>"consultant_id"
+      ),
+      array(
+        $columns[0]=>getTableId('projects_primary'),
+        $columns[1]=>getTableId('opportunities_primary'),
+        $columns[2]=>"opportunity_id"
+      ),
+      array(
+        $columns[0]=>getTableId('project_technology_junction'),
+        $columns[1]=>getTableId('projects_primary'),
+        $columns[2]=>"primary_id"
+      ),
+      array(
+        $columns[0]=>getTableId('project_technology_junction'),
+        $columns[1]=>getTableId('technologies_lookup'),
+        $columns[2]=>"lookup_id"
+      ),
+      array(
+        $columns[0]=>getTableId('project_solution_junction'),
+        $columns[1]=>getTableId('projects_primary'),
+        $columns[2]=>"primary_id"
+      ),
+      array(
+        $columns[0]=>getTableId('project_solution_junction'),
+        $columns[1]=>getTableId('solutions_lookup'),
+        $columns[2]=>"lookup_id"
+      ),
+      array(
+        $columns[0]=>getTableId('project_misc_junction'),
+        $columns[1]=>getTableId('projects_primary'),
+        $columns[2]=>"primary_id"
+      ),
+      array(
+        $columns[0]=>getTableId('project_misc_junction'),
+        $columns[1]=>getTableId('misc_lookup'),
+        $columns[2]=>"lookup_id"
+      ),
+      array(
+        $columns[0]=>getTableId('project_partner_junction'),
+        $columns[1]=>getTableId('projects_primary'),
+        $columns[2]=>"project_id"
+      ),
+      array(
+        $columns[0]=>getTableId('project_partner_junction'),
+        $columns[1]=>getTableId('opportunity_partner_junction'),
+        $columns[2]=>"partner_id"
+      ),
+      array(
+        $columns[0]=>getTableId('project_consultant_junction'),
+        $columns[1]=>getTableId('projects_primary'),
+        $columns[2]=>"project_id"
+      ),
+      array(
+        $columns[0]=>getTableId('project_consultant_junction'),
+        $columns[1]=>getTableId('opportunity_consultant_junction'),
+        $columns[2]=>"consultant_id"
+      ),
+      array(
+        $columns[0]=>getTableId('consultant_partner_junction'),
+        $columns[1]=>getTableId('consultants_primary'),
+        $columns[2]=>"consultant_id"
+      ),
+      array(
+        $columns[0]=>getTableId('consultant_partner_junction'),
+        $columns[1]=>getTableId('partners_primary'),
+        $columns[2]=>"partner_id"
       )
     );
     populateTable($table_name, $columns, $rows);
