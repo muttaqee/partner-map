@@ -1379,7 +1379,7 @@
 
   // Populate table: ratings
   function populate_ratings() {
-    $table_name = "ratings";
+    $table_name = "ratings_lookup";
     $columns = array("name");
     $values = array(
       "A+", "A", "A-",
@@ -1397,7 +1397,7 @@
 
   // Populate table: ratings_simple
   function populate_ratings_simple() {
-    $table_name = "ratings_simple";
+    $table_name = "ratings_simple_lookup";
     $columns = array("name");
     $values = array("A", "B", "C", "D", "F", "No rating");
     $rows = array();
@@ -1409,7 +1409,7 @@
 
   // Populate table: partner_strengths
   function populate_partner_strengths() {
-    $table_name = "partner_strengths";
+    $table_name = "partner_strengths_lookup";
     $columns = array("name");
     $values = array(
       "Technical - Quality",
@@ -1427,7 +1427,7 @@
 
   // Populate table: technologies
   function populate_technologies() {
-    $table_name = "technologies";
+    $table_name = "technologies_lookup";
     $columns = array("type", "name");
     $rows = array(
       // Each row is in the form:
@@ -1476,7 +1476,7 @@
 
   // Populate table: solutions
   function populate_solutions() {
-    $table_name = "solutions";
+    $table_name = "solutions_lookup";
     $columns = array("type", "name");
     $rows = array(
       // Each row is in the form:
@@ -1536,7 +1536,7 @@
 
   // Populate table: misc
   function populate_misc() {
-    $table_name = "misc";
+    $table_name = "misc_lookup";
     $columns = array("name");
     $values = array(
       "Platform Administration",
@@ -1555,7 +1555,7 @@
 
   // Populate table: verticals
   function populate_verticals() {
-    $table_name = "verticals";
+    $table_name = "verticals_lookup";
     $columns = array("name");
     $values = array(
       "All", "FS", "COM", "HLS", "FED", "RCCM", "SLG", "EN/MFG", "UTL"
@@ -1569,7 +1569,7 @@
 
   // Populate table: regions
   function populate_regions() {
-    $table_name = "regions";
+    $table_name = "regions_lookup";
     $columns = array("name");
     $values = array(
       "All", "NE", "SE", "MW", "NW", "SW", "Other"
@@ -1583,7 +1583,7 @@
 
   // Populate table: opportunity_statuses
   function populate_opportunity_statuses() {
-    $table_name = "opportunity_statuses";
+    $table_name = "opportunity_statuses_lookup";
     $columns = array("name");
     $values = array(
       "Open",
@@ -1599,7 +1599,7 @@
 
   // Populate table: consultant_rating_areas
   function populate_consultant_rating_areas() {
-    $table_name = "consultant_rating_areas";
+    $table_name = "consultant_rating_areas_lookup";
     $columns = array("name");
     $values = array(
       "partner", "programmer", "DI", "BI", "admin", "grid", "VA", "analytics"
@@ -1680,8 +1680,10 @@
     populate_technologies();
     populate_solutions();
     populate_misc();
+
     populate_verticals();
     populate_regions();
+
     populate_opportunity_statuses();
     populate_consultant_rating_areas();
   }
