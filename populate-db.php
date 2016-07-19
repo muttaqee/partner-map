@@ -127,8 +127,10 @@
 
   // Populate table: partner_strength_ratings
   function populate_partner_strength_ratings() {
+    global $scripts_path;
+
     $table_name = "partner_strength_ratings";
-    $columns = array("partner_id", "partner_strength_id", "rating_id");
+    $columns = array("primary_id", "lookup_id", "rating_id");
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
@@ -141,28 +143,28 @@
     foreach ($rows as $key => $row) {
       // Replace "partner_name":<name> with "partner_id":<id>
       $sql = "
-      SELECT id FROM partners
-      WHERE partners.name LIKE \"" . $row["partner_name"] . "\"
+      SELECT id FROM partners_primary
+      WHERE partners_primary.name LIKE \"" . $row["partner_name"] . "\"
       LIMIT 1
       ";
       $partner_id = mysql_result(query($sql, $sql, false), 0);
-      $row["partner_id"] = $partner_id;
+      $row["primary_id"] = $partner_id;
       unset($row['partner_name']);
 
       // Replace "partner_strength":<name> with "partner_strength_id":<id>
       $sql = "
-      SELECT id FROM partner_strengths
-      WHERE partner_strengths.name LIKE \"" . $row["partner_strength"] . "\"
+      SELECT id FROM partner_strengths_lookup
+      WHERE partner_strengths_lookup.name LIKE \"" . $row["partner_strength"] . "\"
       LIMIT 1
       ";
       $partner_strength_id = mysql_result(query($sql, $sql, false), 0);
-      $row["partner_strength_id"] = $partner_strength_id;
+      $row["lookup_id"] = $partner_strength_id;
       unset($row["partner_strength"]);
 
       // Replace "rating":<name> with "rating_id":<id>
       $sql = "
-      SELECT id FROM ratings_simple
-      WHERE ratings_simple.name LIKE \"" . $row["rating"] . "\"
+      SELECT id FROM ratings_simple_lookup
+      WHERE ratings_simple_lookup.name LIKE \"" . $row["rating"] . "\"
       LIMIT 1
       ";
       $rating_id = mysql_result(query($sql, $sql, false), 0);
@@ -180,7 +182,7 @@
     global $scripts_path;
 
     $table_name = "partner_technology_ratings";
-    $columns = array("partner_id", "technology_id", "rating_id");
+    $columns = array("primary_id", "lookup_id", "rating_id");
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
@@ -194,30 +196,30 @@
     // FIXME: Prepare $rows before passing to populateTable
     foreach ($rows as $key => $row) {
       $sql = "
-      SELECT id FROM partners
-      WHERE partners.name LIKE \"" . $row["partner_name"] . "\"
+      SELECT id FROM partners_primary
+      WHERE partners_primary.name LIKE \"" . $row["partner_name"] . "\"
       LIMIT 1
       ";
       $partner_id = mysql_result(query($sql, $sql, false), 0);
 
       $sql = "
-      SELECT id FROM technologies
-      WHERE technologies.name LIKE \"" . $row["technology"] . "\"
+      SELECT id FROM technologies_lookup
+      WHERE technologies_lookup.name LIKE \"" . $row["technology"] . "\"
       LIMIT 1
       ";
       $technology_id = mysql_result(query($sql, $sql, false), 0);
 
       // Replace "rating":<name> with "rating_id":<id>
       $sql = "
-      SELECT id FROM ratings_simple
-      WHERE ratings_simple.name LIKE \"" . $row["rating"] . "\"
+      SELECT id FROM ratings_simple_lookup
+      WHERE ratings_simple_lookup.name LIKE \"" . $row["rating"] . "\"
       LIMIT 1
       ";
       $rating_id = mysql_result(query($sql, $sql, false), 0);
 
       $row["rating_id"] = $rating_id;
-      $row["partner_id"] = $partner_id;
-      $row["technology_id"] = $technology_id;
+      $row["primary_id"] = $partner_id;
+      $row["lookup_id"] = $technology_id;
       unset($row["rating"]);
       unset($row["partner_name"]);
       unset($row["technology"]);
@@ -234,7 +236,7 @@
     global $scripts_path;
 
     $table_name = "partner_solution_ratings";
-    $columns = array("partner_id", "solution_id", "rating_id");
+    $columns = array("primary_id", "lookup_id", "rating_id");
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
@@ -248,28 +250,28 @@
     // FIXME: Prepare $rows before passing to populateTable
     foreach ($rows as $key => $row) {
       $sql = "
-      SELECT id FROM partners
-      WHERE partners.name LIKE \"" . $row["partner_name"] . "\"
+      SELECT id FROM partners_primary
+      WHERE partners_primary.name LIKE \"" . $row["partner_name"] . "\"
       LIMIT 1
       ";
       $partner_id = mysql_result(query($sql, $sql, false), 0);
 
       $sql = "
-      SELECT id FROM solutions
-      WHERE solutions.name LIKE \"" . $row["solution"] . "\"
+      SELECT id FROM solutions_lookup
+      WHERE solutions_lookup.name LIKE \"" . $row["solution"] . "\"
       LIMIT 1
       ";
       $solution_id = mysql_result(query($sql, $sql, false), 0);
 
       $sql = "
-      SELECT id FROM ratings_simple
-      WHERE ratings_simple.name LIKE \"" . $row["rating"] . "\"
+      SELECT id FROM ratings_simple_lookup
+      WHERE ratings_simple_lookup.name LIKE \"" . $row["rating"] . "\"
       LIMIT 1
       ";
       $rating_id = mysql_result(query($sql, $sql, false), 0);
 
-      $row["partner_id"] = $partner_id;
-      $row["solution_id"] = $solution_id;
+      $row["primary_id"] = $partner_id;
+      $row["lookup_id"] = $solution_id;
       $row["rating_id"] = $rating_id;
       unset($row["partner_name"]);
       unset($row["solution"]);
@@ -288,7 +290,7 @@
     global $scripts_path;
 
     $table_name = "partner_misc_ratings";
-    $columns = array("partner_id", "misc_id", "rating_id");
+    $columns = array("primary_id", "lookup_id", "rating_id");
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
@@ -302,28 +304,28 @@
     // FIXME: Prepare $rows before passing to populateTable
     foreach ($rows as $key => $row) {
       $sql = "
-      SELECT id FROM partners
-      WHERE partners.name LIKE \"" . $row["partner_name"] . "\"
+      SELECT id FROM partners_primary
+      WHERE partners_primary.name LIKE \"" . $row["partner_name"] . "\"
       LIMIT 1
       ";
       $partner_id = mysql_result(query($sql, $sql, false), 0);
 
       $sql = "
-      SELECT id FROM misc
-      WHERE misc.name LIKE \"" . $row["misc_type"] . "\"
+      SELECT id FROM misc_lookup
+      WHERE misc_lookup.name LIKE \"" . $row["misc_type"] . "\"
       LIMIT 1
       ";
       $misc_id = mysql_result(query($sql, $sql, false), 0);
 
       $sql = "
-      SELECT id FROM ratings_simple
-      WHERE ratings_simple.name LIKE \"" . $row["rating"] . "\"
+      SELECT id FROM ratings_simple_lookup
+      WHERE ratings_simple_lookup.name LIKE \"" . $row["rating"] . "\"
       LIMIT 1
       ";
       $rating_id = mysql_result(query($sql, $sql, false), 0);
 
-      $row["partner_id"] = $partner_id;
-      $row["misc_id"] = $misc_id;
+      $row["primary_id"] = $partner_id;
+      $row["lookup_id"] = $misc_id;
       $row["rating_id"] = $rating_id;
       unset($row["partner_name"]);
       unset($row["misc_type"]);
@@ -340,7 +342,7 @@
     global $scripts_path;
 
     $table_name = "partner_vertical_junction";
-    $columns = array("partner_id", "vertical_id");
+    $columns = array("primary_id", "lookup_id");
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
@@ -354,21 +356,21 @@
     // FIXME: Prepare $rows before passing to populateTable
     foreach ($rows as $key => $row) {
       $sql = "
-      SELECT id FROM partners
-      WHERE partners.name LIKE \"" . $row["partner_name"] . "\"
+      SELECT id FROM partners_primary
+      WHERE partners_primary.name LIKE \"" . $row["partner_name"] . "\"
       LIMIT 1
       ";
       $partner_id = mysql_result(query($sql, $sql, false), 0);
 
       $sql = "
-      SELECT id FROM verticals
-      WHERE verticals.name LIKE \"" . $row["vertical"] . "\"
+      SELECT id FROM verticals_lookup
+      WHERE verticals_lookup.name LIKE \"" . $row["vertical"] . "\"
       LIMIT 1
       ";
       $vertical_id = mysql_result(query($sql, $sql, false), 0);
 
-      $row["partner_id"] = $partner_id;
-      $row["vertical_id"] = $vertical_id;
+      $row["primary_id"] = $partner_id;
+      $row["lookup_id"] = $vertical_id;
       unset($row["partner_name"]);
       unset($row["vertical"]);
 
@@ -383,7 +385,7 @@
     global $scripts_path;
 
     $table_name = "partner_region_junction";
-    $columns = array("partner_id", "region_id");
+    $columns = array("primary_id", "lookup_id");
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
@@ -398,21 +400,21 @@
     // FIXME: Prepare $rows before passing to populateTable
     foreach ($rows as $key => $row) {
       $sql = "
-      SELECT id FROM partners
-      WHERE partners.name LIKE \"" . $row["partner_name"] . "\"
+      SELECT id FROM partners_primary
+      WHERE partners_primary.name LIKE \"" . $row["partner_name"] . "\"
       LIMIT 1
       ";
       $partner_id = mysql_result(query($sql, $sql, false), 0);
 
       $sql = "
-      SELECT id FROM regions
-      WHERE regions.name LIKE \"" . $row["region"] . "\"
+      SELECT id FROM regions_lookup
+      WHERE regions_lookup.name LIKE \"" . $row["region"] . "\"
       LIMIT 1
       ";
       $region_id = mysql_result(query($sql, $sql, false), 0);
 
-      $row["partner_id"] = $partner_id;
-      $row["region_id"] = $region_id;
+      $row["primary_id"] = $partner_id;
+      $row["lookup_id"] = $region_id;
       unset($row["partner_name"]);
       unset($row["region"]);
 
@@ -426,7 +428,7 @@
   function populate_consultants() {
     global $scripts_path;
 
-    $table_name = "consultants";
+    $table_name = "consultants_primary";
     # FIXME: Temporarily ignoring some columns
     # $columns = array("id", "first_name", "last_name", "rating", "is_rejected");
     $columns = array("last_name", "rating_id", "is_rejected");
@@ -443,8 +445,8 @@
 
     // Remember rating id for "No rating"
     $sql = "
-    SELECT id FROM ratings
-    WHERE ratings.name LIKE \"" . "No rating" . "\"
+    SELECT id FROM ratings_lookup
+    WHERE ratings_lookup.name LIKE \"" . "No rating" . "\"
     LIMIT 1
     ";
     $no_rating_id = mysql_result(query($sql, $sql, false), 0);
@@ -456,8 +458,8 @@
         $row["rating_id"] = $no_rating_id;
       } else {
         $sql = "
-        SELECT id FROM ratings
-        WHERE ratings.name LIKE \"" . $row["rating"] . "\"
+        SELECT id FROM ratings_lookup
+        WHERE ratings_lookup.name LIKE \"" . $row["rating"] . "\"
         LIMIT 1
         ";
         $rating_id = mysql_result(query($sql, $sql, false), 0);
@@ -503,7 +505,7 @@
     global $scripts_path;
 
     $table_name = "consultant_ratings";
-    $columns = array("consultant_id", "area_id", "rating_id");
+    $columns = array("primary_id", "lookup_id", "rating_id");
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
     $prog = "C:\Python34\python";
@@ -517,8 +519,8 @@
 
     // Remember rating id for "No rating"
     $sql = "
-    SELECT id FROM ratings_simple
-    WHERE ratings_simple.name LIKE \"" . "No rating" . "\"
+    SELECT id FROM ratings_simple_lookup
+    WHERE ratings_simple_lookup.name LIKE \"" . "No rating" . "\"
     LIMIT 1
     ";
     $no_rating_id = mysql_result(query($sql, $sql, false), 0);
@@ -526,28 +528,28 @@
     // FIXME: Prepare $rows before passing to populateTable
     foreach ($rows as $key => $row) {
       $sql = "
-      SELECT id FROM consultants
-      WHERE consultants.last_name LIKE \"" . $row["last_name"] . "\"
+      SELECT id FROM consultants_primary
+      WHERE consultants_primary.last_name LIKE \"" . $row["last_name"] . "\"
       LIMIT 1
       ";
       $consultant_id = mysql_result(query($sql, $sql, false), 0);
 
       $sql = "
-      SELECT id FROM consultant_rating_areas
-      WHERE consultant_rating_areas.name LIKE \"" . $row["area"] . "\"
+      SELECT id FROM consultant_rating_areas_lookup
+      WHERE consultant_rating_areas_lookup.name LIKE \"" . $row["area"] . "\"
       LIMIT 1
       ";
       $area_id = mysql_result(query($sql, $sql, false), 0);
 
       $sql = "
-      SELECT id FROM ratings_simple
-      WHERE ratings_simple.name LIKE \"" . $row["rating"] . "\"
+      SELECT id FROM ratings_simple_lookup
+      WHERE ratings_simple_lookup.name LIKE \"" . $row["rating"] . "\"
       LIMIT 1
       ";
       $rating_id = mysql_result(query($sql, $sql, false), 0);
 
-      $row["consultant_id"] = $consultant_id;
-      $row["area_id"] = $area_id;
+      $row["primary_id"] = $consultant_id;
+      $row["lookup_id"] = $area_id;
       if ($rating_id == "" || $rating_id === null) {
         $row["rating_id"] = $no_rating_id;
       } else {
@@ -582,8 +584,8 @@
     // FIXME: Prepare $rows before passing to populateTable
     foreach ($rows as $key => $row) {
       $sql = "
-      SELECT id FROM partners
-      WHERE partners.name LIKE '%" . $row["partner_name"] . "%'
+      SELECT id FROM partners_primary
+      WHERE partners_primary.name LIKE '%" . $row["partner_name"] . "%'
       LIMIT 1
       ";
       $partner_id = mysql_result(query($sql, $sql, false), 0);
@@ -595,8 +597,8 @@
       }
 
       $sql = "
-      SELECT id FROM consultants
-      WHERE consultants.last_name LIKE '%" . $row["consultant_name"] . "%'
+      SELECT id FROM consultants_primary
+      WHERE consultants_primary.last_name LIKE '%" . $row["consultant_name"] . "%'
       LIMIT 1
       ";
       $consultant_id = mysql_result(query($sql, $sql, false), 0);
@@ -644,7 +646,7 @@
       // NOTE: All non-null values are encased in single quotes
 
       // Columns
-      $query = "INSERT INTO partners (";
+      $query = "INSERT INTO partners_primary (";
       $size = count($columns);
       for ($i = 0; $i < $size-1; $i++) {
         $query .= "$columns[$i],";

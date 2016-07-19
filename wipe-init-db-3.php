@@ -102,6 +102,11 @@
     } else {
       report("Created database: '$db_name'");
     }
+  }
+
+  // Select db
+  function selectDatabase() {
+    global $db_name;
 
     // Select database
     mysql_select_db($db_name) or die("Could not select database $db_name: " . mysql_error());
@@ -163,6 +168,7 @@
     // Construct query
     global $ID_SIZE;
     global $NAME_SIZE;
+    global $BOOLEAN_SIZE;
     $sql = "CREATE TABLE $table_name (
       id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
       name VARCHAR($NAME_SIZE) NOT NULL UNIQUE,   /* Name in db */
@@ -191,7 +197,7 @@
     $sql = "CREATE TABLE $table_name (
       table_id INT($ID_SIZE) NOT NULL,
       reference_table_id INT($ID_SIZE) NOT NULL,
-      referenced_column VARCHAR($NAME_SIZE) NOT NULL,
+      fk_column VARCHAR($NAME_SIZE) NOT NULL,
       CONSTRAINT pk PRIMARY KEY (table_id, reference_table_id)
     ) COMMENT 'Table references'";
 
@@ -536,9 +542,9 @@
       lookup_id INT($ID_SIZE) NOT NULL COMMENT 'Area',
       rating_id INT($ID_SIZE) NOT NULL COMMENT 'Rating',
       CONSTRAINT pk PRIMARY KEY (primary_id, lookup_id),
-      FOREIGN KEY (primary_id) REFERENCES consultants(id),
+      FOREIGN KEY (primary_id) REFERENCES consultants_primary(id),
       FOREIGN KEY (lookup_id) REFERENCES consultant_rating_areas_lookup(id),
-      FOREIGN KEY (rating_id) REFERENCES ratings_simple(id)
+      FOREIGN KEY (rating_id) REFERENCES ratings_simple_lookup(id)
     ) COMMENT 'Consultant ratings'";
 
     query($sql, "Created $table_name table", false);
@@ -598,7 +604,7 @@
       status_id INT($ID_SIZE) COMMENT 'Status', # FIXME: Make this NOT NULL?
       date_created DATE COMMENT 'Date created', # i.e. date this opp was opened/created (not the duration, which is stored in the junctions referencing this table)
       PRIMARY KEY (id),
-      FOREIGN KEY (status_id) REFERENCES opportunity_statuses(id)
+      FOREIGN KEY (status_id) REFERENCES opportunity_statuses_lookup(id)
     ) COMMENT 'Opportunities'";
 
     query($sql, "Created $table_name table", false);
@@ -796,7 +802,7 @@
       partner_id INT($ID_SIZE) NOT NULL COMMENT 'Partner',
       UNIQUE KEY (project_id, partner_id),
       FOREIGN KEY (project_id) REFERENCES projects_primary(id),
-      FOREIGN KEY (partner_id) REFERENCES opportunity_partner_junction(consultant_id)
+      FOREIGN KEY (partner_id) REFERENCES opportunity_partner_junction(partner_id)
     ) COMMENT = 'Project-partner junction'";
 
     query($sql, "Created $table_name table", false);
@@ -862,7 +868,11 @@
       $vals_string = "";
       for ($i = 0; $i < $row_width-1; $i++) {
         $cols_string .= $columns[$i] . ",";
-        $vals_string .= "\"" . $row[$columns[$i]] . "\",";
+        if (substr($columns[$i], 0, 3) === "is_") { // FIXME: Check for bit value
+          $vals_string .= $row[$columns[$i]] . ",";
+        } else {
+          $vals_string .= "\"" . $row[$columns[$i]] . "\",";
+        }
       }
       $cols_string .= $columns[$row_width-1];
       $vals_string .= "\"" . $row[$columns[$row_width-1]] . "\"";
@@ -872,41 +882,48 @@
   }
 
   // Stores table name => table id pairs
-  global $id = 1;
-  global $tables = array(
-    'ratings_lookup'=>$id++,
-    'ratings_simple_lookup'=>$id++,
-    'partners_primary'=>$id++,
-    'partner_strengths_lookup'=>$id++,
-    'partner_strength_ratings'=>$id++,
-    'technologies_lookup'=>$id++,
-    'partner_technology_ratings'=>$id++,
-    'solutions_lookup'=>$id++,
-    'partner_solution_ratings'=>$id++,
-    'misc_lookup'=>$id++,
-    'partner_misc_ratings'=>$id++,
-    'verticals_lookup'=>$id++,
-    'partner_vertical_junction'=>$id++,
-    'regions_lookup'=>$id++,
-    'partner_region_junction'=>$id++,
-    'consultants_primary'=>$id++,
-    'consultant_rating_areas_lookup'=>$id++,
-    'consultant_ratings'=>$id++,
-    'customers_primary'=>$id++,
-    'opportunity_statuses_lookup'=>$id++,
-    'opportunities_primary'=>$id++,
-    'opportunity_partner_junction'=>$id++,
-    'opportunity_consultant_junction'=>$id++,
-    'projects_primary'=>$id++,
-    'project_technology_junction'=>$id++,
-    'project_solution_junction'=>$id++,
-    'project_misc_junction'=>$id++,
-    'project_partner_junction'=>$id++,
-    'project_consultant_junction'=>$id++,
-    'consultant_partner_junction'=>$id++
-  );
+  global $id;
+  global $tables;
+  function initTableIds() {
+    global $id;
+    $id = 1;
+    global $tables;
+    $tables = array(
+      'ratings_lookup'=>$id++,
+      'ratings_simple_lookup'=>$id++,
+      'partners_primary'=>$id++,
+      'partner_strengths_lookup'=>$id++,
+      'partner_strength_ratings'=>$id++,
+      'technologies_lookup'=>$id++,
+      'partner_technology_ratings'=>$id++,
+      'solutions_lookup'=>$id++,
+      'partner_solution_ratings'=>$id++,
+      'misc_lookup'=>$id++,
+      'partner_misc_ratings'=>$id++,
+      'verticals_lookup'=>$id++,
+      'partner_vertical_junction'=>$id++,
+      'regions_lookup'=>$id++,
+      'partner_region_junction'=>$id++,
+      'consultants_primary'=>$id++,
+      'consultant_rating_areas_lookup'=>$id++,
+      'consultant_ratings'=>$id++,
+      'customers_primary'=>$id++,
+      'opportunity_statuses_lookup'=>$id++,
+      'opportunities_primary'=>$id++,
+      'opportunity_partner_junction'=>$id++,
+      'opportunity_consultant_junction'=>$id++,
+      'projects_primary'=>$id++,
+      'project_technology_junction'=>$id++,
+      'project_solution_junction'=>$id++,
+      'project_misc_junction'=>$id++,
+      'project_partner_junction'=>$id++,
+      'project_consultant_junction'=>$id++,
+      'consultant_partner_junction'=>$id++
+    );
+  }
   // Helper: get table id from name
   function getTableId($table_name) {
+    global $tables;
     return $tables[$table_name];
   }
 
@@ -1068,7 +1085,7 @@
         $columns[2]=>"lookup",
         $columns[3]=>0,
         $columns[4]=>"ratings_lookup",
-        $columns[5]=>$tables['consultant_rating_areas']
+        $columns[5]=>$tables['consultant_rating_areas_lookup']
       ),
       array(
         $columns[0]=>"consultant_ratings",
@@ -1270,7 +1287,7 @@
       ),
       array(
         $columns[0]=>getTableId('consultant_ratings'),
-        $columns[1]=>getTableId('consultants'),
+        $columns[1]=>getTableId('consultants_primary'),
         $columns[2]=>"primary_id"
       ),
       array(
@@ -1280,12 +1297,12 @@
       ),
       array(
         $columns[0]=>getTableId('consultant_ratings'),
-        $columns[1]=>getTableId('ratings_simple'),
+        $columns[1]=>getTableId('ratings_simple_lookup'),
         $columns[2]=>"rating_id"
       ),
       array(
         $columns[0]=>getTableId('opportunities_primary'),
-        $columns[1]=>getTableId('opportunity_statuses'),
+        $columns[1]=>getTableId('opportunity_statuses_lookup'),
         $columns[2]=>"status_id"
       ),
       array(
@@ -1691,9 +1708,11 @@
   // Main function
   function execute() {
     connect();
-    createDatabase();
-    createAllTables();
-    populateTables();
+    //createDatabase();
+    selectDatabase();
+    initTableIds();
+    //createAllTables();
+    //populateTables();
     disconnect();
   }
 
