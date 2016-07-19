@@ -169,10 +169,9 @@
       label VARCHAR($NAME_SIZE),                  /* Name to display in UI */
       type VARCHAR($NAME_SIZE),                   /* Functional category */
       is_searchable BIT($BOOLEAN_SIZE) DEFAULT 0, /* Tables entities searchable from main UI (useful for blocking out uninteresting _primary tables) */
-      rating_table_id INT($ID_SIZE),              /* Accompanying ratings table, if there is one (useful if there is more than one rating lookup table) */
+      rating_table VARCHAR($NAME_SIZE),           /* Accompanying ratings table, if there is one (useful if there is more than one rating lookup table) */
       PRIMARY KEY (id),
-      FOREIGN KEY (type) REFERENCES table_types_meta(id),
-      FOREIGN KEY (rating_table_id) REFERENCES tables_meta(id)
+      FOREIGN KEY (type) REFERENCES table_types_meta(name)
     ) COMMENT 'Tables'";
 
     query($sql, "Created $table_name table", false);
@@ -605,89 +604,61 @@
     query($sql, "Created $table_name table", false);
   }
 
-  // Create table: projects
-  // An opportunity is composed of one or more projects (think "tasks") for a
-  // customer.
-  // Each project describes some service/product/technology/solution to be
-  // provided to a customer.
-  // Projects may be assigned a number of partners or consultants from those
-  // assigned to the opportunity (i.e. those appearing in
-  // opporunity_partner_junction or opportunity_consultant_junction)
-  // Partners or consultants are assigned by adding rows to the appropriate
-  // junction table: project_consultant_junction or project_partner_junction
-  function create_projects() {
-    $table_name = "projects_primary";
-    dropTable($table_name);
+  // FIXME: Remove these old junctions
 
-    // Construct query
-    global $ID_SIZE;
-    global $NAME_SIZE;
-    global $NOTE_SIZE;
-    $sql = "CREATE TABLE $table_name (
-      id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
-      name VARCHAR($NAME_SIZE) NOT NULL COMMENT 'Name',
-      opportunity_id INT($ID_SIZE) NOT NULL COMMENT 'Opportunity',
-      notes VARCHAR($NOTE_SIZE) COMMENT 'Notes',
-      PRIMARY KEY (id),
-      FOREIGN KEY (opportunity_id) REFERENCES opportunities_primary(id)
-    ) COMMENT 'Projects'";
-
-    query($sql, "Created $table_name table", false);
-  }
-
-  // Create table: opportunity_technology_junction
-  function create_opportunity_technology_junction() {
-    $table_name = "opportunity_technology_junction";
-    dropTable($table_name);
-
-    // Construct query
-    global $ID_SIZE;
-    $sql = "CREATE TABLE $table_name (
-      primary_id INT($ID_SIZE) NOT NULL COMMENT 'Opportunity',
-      lookup_id INT($ID_SIZE) NOT NULL COMMENT 'Technology',
-      UNIQUE KEY (primary_id, lookup_id),
-      FOREIGN KEY (primary_id) REFERENCES opportunities_primary(id),
-      FOREIGN KEY (lookup_id) REFERENCES technologies_lookup(id)
-    ) COMMENT = 'Opportunity-technology junction'";
-
-    query($sql, "Created $table_name table", false);
-  }
-
-  // Create table: opportunity_solution_junction
-  function create_opportunity_solution_junction() {
-    $table_name = "opportunity_solution_junction";
-    dropTable($table_name);
-
-    // Construct query
-    global $ID_SIZE;
-    $sql = "CREATE TABLE $table_name (
-      primary_id INT($ID_SIZE) NOT NULL COMMENT 'Opportunity',
-      lookup_id INT($ID_SIZE) NOT NULL COMMENT 'Solution',
-      UNIQUE KEY (primary_id, lookup_id),
-      FOREIGN KEY (primary_id) REFERENCES opportunities_primary(id),
-      FOREIGN KEY (lookup_id) REFERENCES solutions_lookup(id)
-    ) COMMENT = 'Opportunity-solution junction'";
-
-    query($sql, "Created $table_name table", false);
-  }
-
-  // Create table: opportunity_misc_junction
-  function create_opportunity_misc_junction() {
-    $table_name = "opportunity_misc_junction";
-    dropTable($table_name);
-
-    // Construct query
-    global $ID_SIZE;
-    $sql = "CREATE TABLE $table_name (
-      primary_id INT($ID_SIZE) NOT NULL COMMENT 'Opportunity',
-      lookup_id INT($ID_SIZE) NOT NULL COMMENT 'Misc',
-      UNIQUE KEY (primary_id, lookup_id),
-      FOREIGN KEY (primary_id) REFERENCES opportunities_primary(id),
-      FOREIGN KEY (lookup_id) REFERENCES misc_lookup(id)
-    ) COMMENT = 'Opportunity-misc junction'";
-
-    query($sql, "Created $table_name table", false);
-  }
+  // // Create table: opportunity_technology_junction
+  // function create_opportunity_technology_junction() {
+  //   $table_name = "opportunity_technology_junction";
+  //   dropTable($table_name);
+  //
+  //   // Construct query
+  //   global $ID_SIZE;
+  //   $sql = "CREATE TABLE $table_name (
+  //     primary_id INT($ID_SIZE) NOT NULL COMMENT 'Opportunity',
+  //     lookup_id INT($ID_SIZE) NOT NULL COMMENT 'Technology',
+  //     UNIQUE KEY (primary_id, lookup_id),
+  //     FOREIGN KEY (primary_id) REFERENCES opportunities_primary(id),
+  //     FOREIGN KEY (lookup_id) REFERENCES technologies_lookup(id)
+  //   ) COMMENT = 'Opportunity-technology junction'";
+  //
+  //   query($sql, "Created $table_name table", false);
+  // }
+  //
+  // // Create table: opportunity_solution_junction
+  // function create_opportunity_solution_junction() {
+  //   $table_name = "opportunity_solution_junction";
+  //   dropTable($table_name);
+  //
+  //   // Construct query
+  //   global $ID_SIZE;
+  //   $sql = "CREATE TABLE $table_name (
+  //     primary_id INT($ID_SIZE) NOT NULL COMMENT 'Opportunity',
+  //     lookup_id INT($ID_SIZE) NOT NULL COMMENT 'Solution',
+  //     UNIQUE KEY (primary_id, lookup_id),
+  //     FOREIGN KEY (primary_id) REFERENCES opportunities_primary(id),
+  //     FOREIGN KEY (lookup_id) REFERENCES solutions_lookup(id)
+  //   ) COMMENT = 'Opportunity-solution junction'";
+  //
+  //   query($sql, "Created $table_name table", false);
+  // }
+  //
+  // // Create table: opportunity_misc_junction
+  // function create_opportunity_misc_junction() {
+  //   $table_name = "opportunity_misc_junction";
+  //   dropTable($table_name);
+  //
+  //   // Construct query
+  //   global $ID_SIZE;
+  //   $sql = "CREATE TABLE $table_name (
+  //     primary_id INT($ID_SIZE) NOT NULL COMMENT 'Opportunity',
+  //     lookup_id INT($ID_SIZE) NOT NULL COMMENT 'Misc',
+  //     UNIQUE KEY (primary_id, lookup_id),
+  //     FOREIGN KEY (primary_id) REFERENCES opportunities_primary(id),
+  //     FOREIGN KEY (lookup_id) REFERENCES misc_lookup(id)
+  //   ) COMMENT = 'Opportunity-misc junction'";
+  //
+  //   query($sql, "Created $table_name table", false);
+  // }
 
   // Create table: opportunity_partner_junction
   function create_opportunity_partner_junction() {
@@ -725,6 +696,126 @@
       FOREIGN KEY (opportunity_id) REFERENCES opportunities_primary(id),
       FOREIGN KEY (consultant_id) REFERENCES consultants_primary(id)
     ) COMMENT = 'Opportunity-consultant junction'";
+
+    query($sql, "Created $table_name table", false);
+  }
+
+  // Create table: projects
+  // An opportunity is composed of one or more projects (think "tasks") for a
+  // customer.
+  // Each project describes some service/product/technology/solution to be
+  // provided to a customer.
+  // Projects may be assigned a number of partners or consultants from those
+  // assigned to the opportunity (i.e. those appearing in
+  // opporunity_partner_junction or opportunity_consultant_junction)
+  // Partners or consultants are assigned by adding rows to the appropriate
+  // junction table: project_consultant_junction or project_partner_junction
+  function create_projects() {
+    $table_name = "projects_primary";
+    dropTable($table_name);
+
+    // Construct query
+    global $ID_SIZE;
+    global $NAME_SIZE;
+    global $NOTE_SIZE;
+    $sql = "CREATE TABLE $table_name (
+      id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
+      name VARCHAR($NAME_SIZE) NOT NULL COMMENT 'Name',
+      opportunity_id INT($ID_SIZE) NOT NULL COMMENT 'Opportunity',
+      notes VARCHAR($NOTE_SIZE) COMMENT 'Notes',
+      PRIMARY KEY (id),
+      FOREIGN KEY (opportunity_id) REFERENCES opportunities_primary(id)
+    ) COMMENT 'Projects'";
+
+    query($sql, "Created $table_name table", false);
+  }
+
+  // Create table: project_technology_junction
+  function create_project_technology_junction() {
+    $table_name = "project_technology_junction";
+    dropTable($table_name);
+
+    // Construct query
+    global $ID_SIZE;
+    $sql = "CREATE TABLE $table_name (
+      primary_id INT($ID_SIZE) NOT NULL COMMENT 'Project',
+      lookup_id INT($ID_SIZE) NOT NULL COMMENT 'Technology',
+      UNIQUE KEY (primary_id, lookup_id),
+      FOREIGN KEY (primary_id) REFERENCES projects_primary(id),
+      FOREIGN KEY (lookup_id) REFERENCES technologies_lookup(id)
+    ) COMMENT = 'Project-technology junction'";
+
+    query($sql, "Created $table_name table", false);
+  }
+
+  // Create table: project_solution_junction
+  function create_project_solution_junction() {
+    $table_name = "project_solution_junction";
+    dropTable($table_name);
+
+    // Construct query
+    global $ID_SIZE;
+    $sql = "CREATE TABLE $table_name (
+      primary_id INT($ID_SIZE) NOT NULL COMMENT 'Project',
+      lookup_id INT($ID_SIZE) NOT NULL COMMENT 'Solution',
+      UNIQUE KEY (primary_id, lookup_id),
+      FOREIGN KEY (primary_id) REFERENCES projects_primary(id),
+      FOREIGN KEY (lookup_id) REFERENCES solutions_lookup(id)
+    ) COMMENT = 'Project-solution junction'";
+
+    query($sql, "Created $table_name table", false);
+  }
+
+  // Create table: project_misc_junction
+  function create_project_misc_junction() {
+    $table_name = "project_misc_junction";
+    dropTable($table_name);
+
+    // Construct query
+    global $ID_SIZE;
+    $sql = "CREATE TABLE $table_name (
+      primary_id INT($ID_SIZE) NOT NULL COMMENT 'Project',
+      lookup_id INT($ID_SIZE) NOT NULL COMMENT 'Misc',
+      UNIQUE KEY (primary_id, lookup_id),
+      FOREIGN KEY (primary_id) REFERENCES projects_primary(id),
+      FOREIGN KEY (lookup_id) REFERENCES misc_lookup(id)
+    ) COMMENT = 'Project-misc junction'";
+
+    query($sql, "Created $table_name table", false);
+  }
+
+  // Create table: project_partner_junction
+  function create_project_partner_junction() {
+    $table_name = "project_partner_junction";
+    dropTable($table_name);
+
+    // Construct query
+    global $ID_SIZE;
+    $sql = "CREATE TABLE $table_name (
+      project_id INT($ID_SIZE) NOT NULL COMMENT 'Project',
+      partner_id INT($ID_SIZE) NOT NULL COMMENT 'Partner',
+      UNIQUE KEY (project_id, partner_id),
+      FOREIGN KEY (project_id) REFERENCES projects_primary(id),
+      FOREIGN KEY (partner_id) REFERENCES opportunity_partner_junction(consultant_id)
+    ) COMMENT = 'Project-partner junction'";
+
+    query($sql, "Created $table_name table", false);
+  }
+
+  // Create table: project_consultant_junction
+  function create_project_consultant_junction() {
+    $table_name = "project_consultant_junction";
+    dropTable($table_name);
+
+    // Construct query
+    global $ID_SIZE;
+    $sql = "CREATE TABLE $table_name (
+      project_id INT($ID_SIZE) NOT NULL COMMENT 'Project',
+      consultant_id INT($ID_SIZE) NOT NULL COMMENT 'Consultant',
+      UNIQUE KEY (project_id, consultant_id),
+      FOREIGN KEY (project_id) REFERENCES projects_primary(id),
+      FOREIGN KEY (consultant_id) REFERENCES opportunity_consultant_junction(consultant_id)
+    ) COMMENT = 'Project-consultant junction'";
 
     query($sql, "Created $table_name table", false);
   }
@@ -778,6 +869,273 @@
       $sql = "INSERT INTO $table_name ($cols_string) VALUES ($vals_string)";
       query($sql, $sql, false);
     }
+  }
+
+  // Populate table: table types
+  function populate_table_types_meta() {
+    $table_name = "table_types_meta";
+    $columns = array("name");
+    $values = array(
+      "primary", "secondary", "tertiary", "lookup", "junction", "ratings",
+      "primary-primary-junction",
+      "primary-secondary junction",
+      "primary-lookup-junction",
+      "primary-junction-junction"
+    );
+    $rows = array();
+    foreach ($values as $value) {
+      array_push($rows, array($columns[0]=>$value));
+    }
+    populateTable($table_name, $columns, $rows);
+  }
+
+  // Populate table: tables_meta
+  function populate_tables_meta() {
+    $table_name = "tables_meta";
+    $columns = array("name", "label", "type", "is_searchable", "rating_table");
+    $rows = array(
+      array(
+        $columns[0]=>"ratings_lookup",
+        $columns[1]=>"Ratings",
+        $columns[2]=>"lookup",
+        $columns[3]=>0,
+        $columns[4]=>"",
+        $columns[5]=>1
+      ),
+      array(
+        $columns[0]=>"ratings_simple_lookup",
+        $columns[1]=>"Ratings",
+        $columns[2]=>"lookup",
+        $columns[3]=>0,
+        $columns[4]=>"",
+        $columns[5]=>2
+      ),
+      array(
+        $columns[0]=>"partners_primary",
+        $columns[1]=>"Partners",
+        $columns[2]=>"primary",
+        $columns[3]=>1,
+        $columns[4]=>"",
+        $columns[5]=>3
+      ),
+      array(
+        $columns[0]=>"partner_strengths_lookup",
+        $columns[1]=>"Partner strengths",
+        $columns[2]=>"lookup",
+        $columns[3]=>0,
+        $columns[4]=>"ratings_simple_lookup",
+        $columns[5]=>4
+      ),
+      array(
+        $columns[0]=>"partner_strength_ratings",
+        $columns[1]=>"Partner strength ratings",
+        $columns[2]=>"ratings",
+        $columns[3]=>0,
+        $columns[4]=>"ratings_simple_lookup",
+        $columns[5]=>5
+      ),
+      array(
+        $columns[0]=>"technologies_lookup",
+        $columns[1]=>"Technologies",
+        $columns[2]=>"lookup",
+        $columns[3]=>0,
+        $columns[4]=>"ratings_simple_lookup",
+        $columns[5]=>6
+      ),
+      array(
+        $columns[0]=>"partner_technology_ratings",
+        $columns[1]=>"Partner technology ratings",
+        $columns[2]=>"ratings",
+        $columns[3]=>0,
+        $columns[4]=>"ratings_simple_lookup",
+        $columns[5]=>7
+      ),
+      array(
+        $columns[0]=>"solutions_lookup",
+        $columns[1]=>"Solutions",
+        $columns[2]=>"lookup",
+        $columns[3]=>0,
+        $columns[4]=>"ratings_simple_lookup",
+        $columns[5]=>8
+      ),
+      array(
+        $columns[0]=>"partner_solution_ratings",
+        $columns[1]=>"Partner solution ratings",
+        $columns[2]=>"ratings",
+        $columns[3]=>0,
+        $columns[4]=>"ratings_simple_lookup",
+        $columns[5]=>9
+      ),
+      array(
+        $columns[0]=>"misc_lookup",
+        $columns[1]=>"Misc",
+        $columns[2]=>"lookup",
+        $columns[3]=>0,
+        $columns[4]=>"ratings_simple_lookup",
+        $columns[5]=>10
+      ),
+      array(
+        $columns[0]=>"partner_misc_ratings",
+        $columns[1]=>"Partner misc ratings",
+        $columns[2]=>"ratings",
+        $columns[3]=>0,
+        $columns[4]=>"ratings_simple_lookup",
+        $columns[5]=>11
+      ),
+      array(
+        $columns[0]=>"verticals_lookup",
+        $columns[1]=>"Verticals",
+        $columns[2]=>"lookup",
+        $columns[3]=>0,
+        $columns[4]=>"",
+        $columns[5]=>12
+      ),
+      array(
+        $columns[0]=>"partner_vertical_junction",
+        $columns[1]=>"Partner-vertical junction",
+        $columns[2]=>"primary-lookup-junction",
+        $columns[3]=>0,
+        $columns[4]=>"",
+        $columns[5]=>13
+      ),
+      array(
+        $columns[0]=>"regions_lookup",
+        $columns[1]=>"Regions",
+        $columns[2]=>"lookup",
+        $columns[3]=>0,
+        $columns[4]=>"",
+        $columns[5]=>14
+      ),
+      array(
+        $columns[0]=>"partner_region_junction",
+        $columns[1]=>"Partner-region junction",
+        $columns[2]=>"primary-lookup-junction",
+        $columns[3]=>0,
+        $columns[4]=>"",
+        $columns[5]=>15
+      ),
+      array(
+        $columns[0]=>"consultants_primary",
+        $columns[1]=>"Consultants",
+        $columns[2]=>"primary",
+        $columns[3]=>1,
+        $columns[4]=>"ratings_lookup",
+        $columns[5]=>16
+      ),
+      array(
+        $columns[0]=>"consultant_rating_areas",
+        $columns[1]=>"Consultant rating areas",
+        $columns[2]=>"lookup",
+        $columns[3]=>0,
+        $columns[4]=>"ratings_lookup",
+        $columns[5]=>17
+      ),
+      array(
+        $columns[0]=>"consultant_ratings",
+        $columns[1]=>"Consultant ratings",
+        $columns[2]=>"ratings",
+        $columns[3]=>0,
+        $columns[4]=>"ratings_simple_lookup",
+        $columns[5]=>18
+      ),
+      array(
+        $columns[0]=>"customers_primary",
+        $columns[1]=>"Customers",
+        $columns[2]=>"primary",
+        $columns[3]=>1,
+        $columns[4]=>"",
+        $columns[5]=>19
+      ),
+      array(
+        $columns[0]=>"opportunity_statuses_lookup",
+        $columns[1]=>"Opportunity statuses",
+        $columns[2]=>"lookup",
+        $columns[3]=>0,
+        $columns[4]=>"",
+        $columns[5]=>20
+      ),
+      array(
+        $columns[0]=>"opportunities_primary",
+        $columns[1]=>"Opportunities",
+        $columns[2]=>"primary",
+        $columns[3]=>1,
+        $columns[4]=>"",
+        $columns[5]=>21
+      ),
+      array(
+        $columns[0]=>"opportunity_partner_junction",
+        $columns[1]=>"Opportunity-partner junction",
+        $columns[2]=>"primary-primary-junction",
+        $columns[3]=>0,
+        $columns[4]=>"",
+        $columns[5]=>22
+      ),
+      array(
+        $columns[0]=>"opportunity_consultant_junction",
+        $columns[1]=>"Opportunity-consultant junction",
+        $columns[2]=>"primary-primary-junction",
+        $columns[3]=>0,
+        $columns[4]=>"",
+        $columns[5]=>23
+      ),
+      array(
+        $columns[0]=>"projects_primary",
+        $columns[1]=>"Projects",
+        $columns[2]=>"primary",
+        $columns[3]=>0,
+        $columns[4]=>"",
+        $columns[5]=>24
+      ),
+      array(
+        $columns[0]=>"project_technology_junction",
+        $columns[1]=>"Project-technology junction",
+        $columns[2]=>"primary-lookup-junction",
+        $columns[3]=>0,
+        $columns[4]=>"",
+        $columns[5]=>25
+      ),
+      array(
+        $columns[0]=>"project_solution_junction",
+        $columns[1]=>"Project-solution junction",
+        $columns[2]=>"primary-lookup-junction",
+        $columns[3]=>0,
+        $columns[4]=>"",
+        $columns[5]=>26
+      ),
+      array(
+        $columns[0]=>"project_misc_junction",
+        $columns[1]=>"Project-misc junction",
+        $columns[2]=>"primary-lookup-junction",
+        $columns[3]=>0,
+        $columns[4]=>"",
+        $columns[5]=>27
+      ),
+      array(
+        $columns[0]=>"project_partner_junction",
+        $columns[1]=>"Project-partner junction",
+        $columns[2]=>"primary-junction-junction",
+        $columns[3]=>0,
+        $columns[4]=>"",
+        $columns[5]=>28
+      ),
+      array(
+        $columns[0]=>"project_consultant_junction",
+        $columns[1]=>"Project-consultant junction",
+        $columns[2]=>"primary-junction-junction",
+        $columns[3]=>0,
+        $columns[4]=>"",
+        $columns[5]=>29
+      ),
+      array(
+        $columns[0]=>"consultant_partner_junction",
+        $columns[1]=>"Consultant-partner juction",
+        $columns[2]=>"primary-primary-junction",
+        $columns[3]=>0,
+        $columns[4]=>"",
+        $columns[5]=>30
+      )
+    );
+    populateTable($table_name, $columns, $rows);
   }
 
   // Populate table: ratings
@@ -1016,6 +1374,10 @@
 
   // Create all tables
   function createAllTables() {
+    create_table_types_meta();
+    create_tables_meta();
+    create_table_fk_meta();
+
     create_ratings();
     create_ratings_simple();
 
@@ -1052,17 +1414,29 @@
 
     # FIXME: May modify to include opp-project junction,
     # then project-( partner | consultant ) junctions
-    create_opportunity_technology_junction();
-    create_opportunity_solution_junction();
-    create_opportunity_misc_junction();
+    // create_opportunity_technology_junction();
+    // create_opportunity_solution_junction();
+    // create_opportunity_misc_junction();
+
+    create_projects();
+    create_project_technology_junction();
+    create_project_solution_junction();
+    create_project_misc_junction();
+    create_project_partner_junction();
+    create_project_consultant_junction();
 
     create_consultant_partner_junction();
   }
 
   // Populate tables that do no need to be read from the workbook
   function populateTables() {
+    populate_table_types_meta();
+    populate_tables_meta();
+    populate_table_fk_meta();
+
     populate_ratings();
     populate_ratings_simple();
+
     populate_partner_strengths();
     populate_technologies();
     populate_solutions();
