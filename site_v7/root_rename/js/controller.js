@@ -313,14 +313,6 @@ function loadFKs() {
   str = "SELECT * FROM table_fk_meta";
 }
 
-// Generic table load function
-function loadTable(table_name) {
-  query_str = "SELECT * FROM " + table_name;
-  query(query_str, function(data) {
-    var rows = JSON.parse(data);
-  });
-}
-
 function loadTables() {
 
   // Get rows of tables from tables_meta
