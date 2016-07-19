@@ -135,6 +135,72 @@
   $NOTE_SIZE = 500;
   $CURRENCY_SIZE = 15;
 
+  /* Meta table types: name end in _meta */
+
+  // Create table: table_types_meta
+  function create_table_types_meta() {
+    $table_name = "table_types_meta";
+    dropTable($table_name);
+
+    // Construct query
+    global $ID_SIZE;
+    global $NAME_SIZE;
+    $sql = "CREATE TABLE $table_name (
+      id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
+      name VARCHAR($NAME_SIZE) NOT NULL UNIQUE,
+      PRIMARY KEY (id)
+    ) COMMENT = 'Table types'";
+
+    query($sql, "Created $table_name table", false);
+  }
+
+  // Create table: tables_meta
+  // (Stores table id, name, type)
+  function create_tables_meta() {
+    $table_name = "tables_meta";
+    dropTable($table_name);
+
+    // Construct query
+    global $ID_SIZE;
+    global $NAME_SIZE;
+    $sql = "CREATE TABLE $table_name (
+      id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
+      name VARCHAR($NAME_SIZE) NOT NULL UNIQUE,   /* Name in db */
+      label VARCHAR($NAME_SIZE),                  /* Name to display in UI */
+      type VARCHAR($NAME_SIZE),                   /* Functional category */
+      is_searchable BIT($BOOLEAN_SIZE) DEFAULT 0, /* Tables entities searchable from main UI (useful for blocking out uninteresting _primary tables) */
+      rating_table_id INT($ID_SIZE),              /* Accompanying ratings table, if there is one (useful if there is more than one rating lookup table) */
+      PRIMARY KEY (id),
+      FOREIGN KEY (type) REFERENCES table_types_meta(id),
+      FOREIGN KEY (rating_table_id) REFERENCES tables_meta(id)
+    ) COMMENT = 'Tables'";
+
+    query($sql, "Created $table_name table", false);
+  }
+
+  // Create table: table_fk_meta
+  // (junction table storing fk reference pairs of interest)
+  // Idea: to find all data related to entity, controller may loop through all
+  // tables referencing the entity's table (_junction, then _ratings)
+  function create_table_fk_meta() {
+    $table_name = "table_fk_meta";
+    dropTable($table_name);
+
+    // Construct query
+    global $ID_SIZE;
+    global $NAME_SIZE;
+    $sql = "CREATE TABLE $table_name (
+      table_id INT($ID_SIZE) NOT NULL,
+      reference_table_id INT($ID_SIZE) NOT NULL,
+      referenced_column VARCHAR($NAME_SIZE) NOT NULL,
+      CONSTRAINT pk PRIMARY KEY (table_id, reference_table_id)
+    ) COMMENT = 'Table references'";
+
+    query($sql, "Created $table_name table", false);
+  }
+
+  /* Other table types: _primary, _secondary, _lookup, _rating_ and _junction */
+
   // Create table: ratings
   function create_ratings() {
     $table_name = "ratings_lookup";
@@ -145,9 +211,9 @@
     global $RATING_SIZE;
     $sql = "CREATE TABLE $table_name (
       id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
-      name VARCHAR($RATING_SIZE) NOT NULL UNIQUE,
+      name VARCHAR($RATING_SIZE) NOT NULL UNIQUE COMMENT 'Rating',
       PRIMARY KEY (id)
-    )" COMMENT = 'Ratings'; # FIXME: Add E and F to ratings?
+    ) COMMENT = 'Ratings'";
 
     query($sql, "Created $table_name table", false);
   }
@@ -162,9 +228,9 @@
     global $RATING_SIZE;
     $sql = "CREATE TABLE $table_name (
       id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
-      name VARCHAR($RATING_SIZE) NOT NULL UNIQUE,
+      name VARCHAR($RATING_SIZE) NOT NULL UNIQUE COMMENT 'Rating',
       PRIMARY KEY (id)
-    )" COMMENT = 'Ratings (simple)';
+    ) COMMENT = 'Ratings'";
 
     query($sql, "Created $table_name table", false);
   }
@@ -181,11 +247,11 @@
     global $NOTE_SIZE;
     $sql = "CREATE TABLE $table_name (
       id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
-      name VARCHAR($NAME_SIZE) NOT NULL,
-      is_partner_plus BIT($BOOLEAN_SIZE), /* FIXME: Remove and save for opportunity_partner_junction? */
-      notes VARCHAR($NOTE_SIZE),
+      name VARCHAR($NAME_SIZE) NOT NULL COMMENT 'Name',
+      is_partner_plus BIT($BOOLEAN_SIZE) COMMENT 'Partner Plus', /* FIXME: Remove and save for opportunity_partner_junction? */
+      notes VARCHAR($NOTE_SIZE) COMMENT 'Notes',
       PRIMARY KEY (id)
-    )" COMMENT = 'Partners';
+    ) COMMENT = 'Partners'";
 
     query($sql, "Created $table_name table", false);
   }
@@ -200,9 +266,9 @@
     global $NAME_SIZE;
     $sql = "CREATE TABLE $table_name (
       id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
-      name VARCHAR($NAME_SIZE) NOT NULL UNIQUE,
+      name VARCHAR($NAME_SIZE) NOT NULL UNIQUE COMMENT 'Strength',
       PRIMARY KEY (id)
-    )" COMMENT = 'Partner strengths';
+    ) COMMENT = 'Partner strengths'";
 
     query($sql, "Created $table_name table", false);
   }
@@ -217,14 +283,14 @@
     global $NAME_SIZE;
     global $RATING_SIZE;
     $sql = "CREATE TABLE $table_name (
-      partner_id INT($ID_SIZE) NOT NULL,
-      partner_strength_id INT($ID_SIZE) NOT NULL,
-      rating_id INT($ID_SIZE) NOT NULL,
-      CONSTRAINT pk PRIMARY KEY (partner_id, partner_strength_id),
-      FOREIGN KEY (partner_id) REFERENCES partners(id),
-      FOREIGN KEY (partner_strength_id) REFERENCES partner_strengths(id),
-      FOREIGN KEY (rating_id) REFERENCES ratings_simple(id)
-    )" COMMENT = 'Partner strength ratings';
+      primary_id INT($ID_SIZE) NOT NULL COMMENT 'Partner',
+      lookup_id INT($ID_SIZE) NOT NULL COMMENT 'Strength',
+      rating_id INT($ID_SIZE) NOT NULL COMMENT 'Rating',
+      CONSTRAINT pk PRIMARY KEY (primary_id, lookup_id),
+      FOREIGN KEY (primary_id) REFERENCES partners_primary(id),
+      FOREIGN KEY (lookup_id) REFERENCES partner_strengths_lookup(id),
+      FOREIGN KEY (rating_id) REFERENCES ratings_simple_lookup(id)
+    ) COMMENT = 'Partner strength ratings'";
 
     query($sql, "Created $table_name table", false);
   }
@@ -239,11 +305,11 @@
     global $NAME_SIZE;
     $sql = "CREATE TABLE $table_name (
       id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
-      type VARCHAR($NAME_SIZE) NOT NULL,
-      name VARCHAR($NAME_SIZE) NOT NULL,
+      type VARCHAR($NAME_SIZE) NOT NULL COMMENT 'Category',
+      name VARCHAR($NAME_SIZE) NOT NULL COMMENT 'Technology',
       PRIMARY KEY (id),
       CONSTRAINT UNIQUE (type, name)
-    )" COMMENT = 'Technologies';
+    ) COMMENT = 'Technologies'";
 
     query($sql, "Created $table_name table", false);
   }
@@ -257,14 +323,14 @@
     global $ID_SIZE;
     global $RATING_SIZE;
     $sql = "CREATE TABLE $table_name (
-      partner_id INT($ID_SIZE) NOT NULL,
-      technology_id INT($ID_SIZE) NOT NULL,
-      rating_id INT($ID_SIZE) NOT NULL,
-      CONSTRAINT pk PRIMARY KEY (partner_id, technology_id),
-      FOREIGN KEY (partner_id) REFERENCES partners(id),
-      FOREIGN KEY (technology_id) REFERENCES technologies(id),
-      FOREIGN KEY (rating_id) REFERENCES ratings_simple(id)
-    )" COMMENT = 'Partner technology ratings';
+      primary_id INT($ID_SIZE) NOT NULL COMMENT 'Partner',
+      lookup_id INT($ID_SIZE) NOT NULL COMMENT 'Technology',
+      rating_id INT($ID_SIZE) NOT NULL COMMENT 'Rating',
+      CONSTRAINT pk PRIMARY KEY (primary_id, lookup_id),
+      FOREIGN KEY (primary_id) REFERENCES partners_primary(id),
+      FOREIGN KEY (lookup_id) REFERENCES technologies_lookup(id),
+      FOREIGN KEY (rating_id) REFERENCES ratings_simple_lookup(id)
+    ) COMMENT = 'Partner technology ratings'";
 
     query($sql, "Created $table_name table", false);
   }
@@ -279,11 +345,11 @@
     global $NAME_SIZE;
     $sql = "CREATE TABLE $table_name (
       id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
-      type VARCHAR($NAME_SIZE) NOT NULL,
-      name VARCHAR($NAME_SIZE) NOT NULL,
+      type VARCHAR($NAME_SIZE) NOT NULL COMMENT 'Category',
+      name VARCHAR($NAME_SIZE) NOT NULL COMMENT 'Solution',
       PRIMARY KEY (id),
       CONSTRAINT UNIQUE (type, name)
-    )" COMMENT = 'Solutions';
+    ) COMMENT = 'Solutions'";
 
     query($sql, "Created $table_name table", false);
   }
@@ -297,14 +363,14 @@
     global $ID_SIZE;
     global $RATING_SIZE;
     $sql = "CREATE TABLE $table_name (
-      partner_id INT($ID_SIZE) NOT NULL,
-      solution_id INT($ID_SIZE) NOT NULL,
-      rating_id INT($ID_SIZE) NOT NULL,
-      CONSTRAINT pk PRIMARY KEY (partner_id, solution_id),
-      FOREIGN KEY (partner_id) REFERENCES partners(id),
-      FOREIGN KEY (solution_id) REFERENCES solutions(id),
-      FOREIGN KEY (rating_id) REFERENCES ratings_simple(id)
-    )" COMMENT = 'Partner solution ratings';
+      primary_id INT($ID_SIZE) NOT NULL COMMENT 'Partner',
+      lookup_id INT($ID_SIZE) NOT NULL COMMENT 'Solution',
+      rating_id INT($ID_SIZE) NOT NULL COMMENT 'Rating',
+      CONSTRAINT pk PRIMARY KEY (primary_id, lookup_id),
+      FOREIGN KEY (primary_id) REFERENCES partners_primary(id),
+      FOREIGN KEY (lookup_id) REFERENCES solutions_lookup(id),
+      FOREIGN KEY (rating_id) REFERENCES ratings_simple_lookup(id)
+    ) COMMENT = 'Partner solution ratings'";
 
     query($sql, "Created $table_name table", false);
   }
@@ -319,9 +385,9 @@
     global $NAME_SIZE;
     $sql = "CREATE TABLE $table_name (
       id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
-      name VARCHAR($NAME_SIZE) NOT NULL UNIQUE,
+      name VARCHAR($NAME_SIZE) NOT NULL UNIQUE COMMENT 'Misc',
       PRIMARY KEY (id)
-    )" COMMENT = 'Misc';
+    ) COMMENT = 'Misc'";
 
     query($sql, "Created $table_name table", false);
   }
@@ -336,14 +402,14 @@
     global $NAME_SIZE;
     global $RATING_SIZE;
     $sql = "CREATE TABLE $table_name (
-      partner_id INT($ID_SIZE) NOT NULL,
-      misc_id INT($ID_SIZE) NOT NULL,
-      rating_id INT($ID_SIZE) NOT NULL,
-      CONSTRAINT pk PRIMARY KEY (partner_id, misc_id),
-      FOREIGN KEY (partner_id) REFERENCES partners(id),
-      FOREIGN KEY (misc_id) REFERENCES misc(id),
-      FOREIGN KEY (rating_id) REFERENCES ratings_simple(id)
-    )" COMMENT = 'Partner misc ratings';
+      primary_id INT($ID_SIZE) NOT NULL COMMENT 'Partner',
+      lookup_id INT($ID_SIZE) NOT NULL COMMENT 'Misc',
+      rating_id INT($ID_SIZE) NOT NULL COMMENT 'Rating',
+      CONSTRAINT pk PRIMARY KEY (primary_id, lookup_id),
+      FOREIGN KEY (primary_id) REFERENCES partners_primary(id),
+      FOREIGN KEY (lookup_id) REFERENCES misc_lookup(id),
+      FOREIGN KEY (rating_id) REFERENCES ratings_simple_lookup(id)
+    ) COMMENT = 'Partner misc ratings'";
 
     query($sql, "Created $table_name table", false);
   }
@@ -358,9 +424,9 @@
     global $NAME_SIZE;
     $sql = "CREATE TABLE $table_name (
       id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
-      name VARCHAR($NAME_SIZE) NOT NULL UNIQUE,
+      name VARCHAR($NAME_SIZE) NOT NULL UNIQUE COMMENT 'Vertical',
       PRIMARY KEY (id)
-    )" COMMENT = 'Verticals';
+    ) COMMENT = 'Verticals'";
 
     query($sql, "Created $table_name table", false);
   }
@@ -373,12 +439,12 @@
     // Construct query
     global $ID_SIZE;
     $sql = "CREATE TABLE $table_name (
-      partner_id INT($ID_SIZE) NOT NULL,
-      vertical_id INT($ID_SIZE) NOT NULL,
-      CONSTRAINT pk PRIMARY KEY (partner_id, vertical_id),
-      FOREIGN KEY (partner_id) REFERENCES partners(id),
-      FOREIGN KEY (vertical_id) REFERENCES verticals(id)
-    )" COMMENT = 'Partner-vertical junction';
+      primary_id INT($ID_SIZE) NOT NULL COMMENT 'Partner',
+      lookup_id INT($ID_SIZE) NOT NULL COMMENT 'Vertical',
+      CONSTRAINT pk PRIMARY KEY (primary_id, lookup_id),
+      FOREIGN KEY (primary_id) REFERENCES partners_primary(id),
+      FOREIGN KEY (lookup_id) REFERENCES verticals_lookup(id)
+    ) COMMENT = 'Partner-vertical junction'";
 
     query($sql, "Created $table_name table", false);
   }
@@ -393,9 +459,9 @@
     global $NAME_SIZE;
     $sql = "CREATE TABLE $table_name (
       id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
-      name VARCHAR($NAME_SIZE) NOT NULL UNIQUE,
+      name VARCHAR($NAME_SIZE) NOT NULL UNIQUE COMMENT 'Region',
       PRIMARY KEY (id)
-    )" COMMENT = 'Regions';
+    ) COMMENT = 'Regions'";
 
     query($sql, "Created $table_name table", false);
   }
@@ -408,12 +474,12 @@
     // Construct query
     global $ID_SIZE;
     $sql = "CREATE TABLE $table_name (
-      partner_id INT($ID_SIZE) NOT NULL,
-      region_id INT($ID_SIZE) NOT NULL,
-      CONSTRAINT pk PRIMARY KEY (partner_id, region_id),
-      FOREIGN KEY (partner_id) REFERENCES partners(id),
-      FOREIGN KEY (region_id) REFERENCES regions(id)
-    )" COMMENT = 'Partner-region junction';
+      primary_id INT($ID_SIZE) NOT NULL COMMENT 'Partner',
+      lookup_id INT($ID_SIZE) NOT NULL COMMENT 'Region',
+      CONSTRAINT pk PRIMARY KEY (primary_id, lookup_id),
+      FOREIGN KEY (primary_id) REFERENCES partners_primary(id),
+      FOREIGN KEY (lookup_id) REFERENCES regions_lookup(id)
+    ) COMMENT = 'Partner-region junction'";
 
     query($sql, "Created $table_name table", false);
   }
@@ -430,20 +496,21 @@
     global $BOOLEAN_SIZE;
     $sql = "CREATE TABLE $table_name (
       id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
-      first_name VARCHAR($NAME_SIZE),
-      last_name VARCHAR($NAME_SIZE) NOT NULL,
-      rating_id int($ID_SIZE), # FIXME: Added 6-6-16. Alter this?
-      is_rejected BIT($BOOLEAN_SIZE) NOT NULL,
+      name VARCHAR($ID_SIZE) COMMENT 'Name', /* FIXME: FOR NORMAL FORMS' SAKE. And make NOT NULL. */
+      first_name VARCHAR($NAME_SIZE) COMMENT 'First name',
+      last_name VARCHAR($NAME_SIZE) NOT NULL COMMENT 'Last name',
+      rating_id int($ID_SIZE) COMMENT 'Overall rating', # FIXME: Added 6-6-16. Alter this?
+      is_rejected BIT($BOOLEAN_SIZE) NOT NULL COMMENT 'Rejected',
       PRIMARY KEY (id),
       FOREIGN KEY (rating_id) REFERENCES ratings(id)
-    )" COMMENT = 'Consultants';
+    ) COMMENT = 'Consultants'";
 
     query($sql, "Created $table_name table", false);
   }
 
   // Create table: consultant_rating_areas
   function create_consultant_rating_areas() {
-    $table_name = "consultant_rating_areas";
+    $table_name = "consultant_rating_areas_lookup";
     dropTable($table_name);
 
     // Construct query
@@ -451,9 +518,9 @@
     global $NAME_SIZE;
     $sql = "CREATE TABLE $table_name (
       id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
-      name VARCHAR($NAME_SIZE) NOT NULL UNIQUE,
+      name VARCHAR($NAME_SIZE) NOT NULL UNIQUE COMMENT 'Area',
       PRIMARY KEY (id)
-    )" COMMENT = 'Consultant rating areas';
+    ) COMMENT = 'Consultant rating areas'";
 
     query($sql, "Created $table_name table", false);
   }
@@ -466,20 +533,37 @@
     // Construct query
     global $ID_SIZE;
     $sql = "CREATE TABLE $table_name (
-      consultant_id INT($ID_SIZE) NOT NULL,UNIQUE 
-      area_id INT($ID_SIZE) NOT NULL,
-      rating_id INT($ID_SIZE) NOT NULL,
-      CONSTRAINT pk PRIMARY KEY (consultant_id, area_id),
-      FOREIGN KEY (consultant_id) REFERENCES consultants(id),
-      FOREIGN KEY (area_id) REFERENCES consultant_rating_areas(id),
+      primary_id INT($ID_SIZE) NOT NULL COMMENT 'Consultant',
+      lookup_id INT($ID_SIZE) NOT NULL COMMENT 'Area',
+      rating_id INT($ID_SIZE) NOT NULL COMMENT 'Rating',
+      CONSTRAINT pk PRIMARY KEY (primary_id, lookup_id),
+      FOREIGN KEY (primary_id) REFERENCES consultants(id),
+      FOREIGN KEY (lookup_id) REFERENCES consultant_rating_areas_lookup(id),
       FOREIGN KEY (rating_id) REFERENCES ratings_simple(id)
-    )" COMMENT = 'Consultant ratings';
+    ) COMMENT = 'Consultant ratings'";
 
     query($sql, "Created $table_name table", false);
   }
 
   // Create table: customers - FIXME: may implement later
   function create_customers() {
+    $table_name = "customers_primary";
+    dropTable($table_name);
+
+    // Construct query
+    global $ID_SIZE;
+    global $NAME_SIZE;
+    global $BOOLEAN_SIZE;
+    global $NOTE_SIZE;
+    $sql = "CREATE TABLE $table_name (
+      id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
+      name VARCHAR($NAME_SIZE) NOT NULL COMMENT 'Name',
+      website VARCHAR($NAME_SIZE) COMMENT 'Website',
+      notes VARCHAR($NOTE_SIZE) COMMENT 'Notes',
+      PRIMARY KEY (id)
+    ) COMMENT = 'Customers'";
+
+    query($sql, "Created $table_name table", false);
   }
 
   // Create table: opportunity_statuses
@@ -492,9 +576,9 @@
     global $NAME_SIZE;
     $sql = "CREATE TABLE $table_name (
       id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
-      name VARCHAR($NAME_SIZE) NOT NULL UNIQUE,
+      name VARCHAR($NAME_SIZE) NOT NULL UNIQUE COMMENT 'Status',
       PRIMARY KEY (id)
-    )" COMMENT = 'Opportunity statuses';
+    ) COMMENT = 'Opportunity statuses'";
 
     query($sql, "Created $table_name table", false);
   }
@@ -510,13 +594,43 @@
     global $CURRENCY_SIZE;
     $sql = "CREATE TABLE $table_name (
       id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
-      customer VARCHAR($NAME_SIZE) NOT NULL, # FIXME: when customer table is implemented, change to: customer_id INT($ID_SIZE) NOT NULL,
-      customer_rate FLOAT($CURRENCY_SIZE, 2), # FIXME: Make DEFAULT 0?
-      status_id INT($ID_SIZE), # FIXME: Make this NOT NULL?
-      date_created DATE, # i.e. date this opp was opened/created (not the duration, which is stored in the junctions referencing this table)
+      customer VARCHAR($NAME_SIZE) NOT NULL COMMENT 'Customer', # FIXME: when customer table is implemented, change to: customer_id INT($ID_SIZE) NOT NULL,
+      customer_rate FLOAT($CURRENCY_SIZE, 2) COMMENT 'Charge rate', # FIXME: Make DEFAULT 0?
+      status_id INT($ID_SIZE) COMMENT 'Status', # FIXME: Make this NOT NULL?
+      date_created DATE COMMENT 'Date created', # i.e. date this opp was opened/created (not the duration, which is stored in the junctions referencing this table)
       PRIMARY KEY (id),
       FOREIGN KEY (status_id) REFERENCES opportunity_statuses(id)
-    )" COMMENT = 'Opportunities';
+    ) COMMENT = 'Opportunities'";
+
+    query($sql, "Created $table_name table", false);
+  }
+
+  // Create table: projects
+  // An opportunity is composed of one or more projects (think "tasks") for a
+  // customer.
+  // Each project describes some service/product/technology/solution to be
+  // provided to a customer.
+  // Projects may be assigned a number of partners or consultants from those
+  // assigned to the opportunity (i.e. those appearing in
+  // opporunity_partner_junction or opportunity_consultant_junction)
+  // Partners or consultants are assigned by adding rows to the appropriate
+  // junction table: project_consultant_junction or project_partner_junction
+  function create_projects() {
+    $table_name = "projects_primary";
+    dropTable($table_name);
+
+    // Construct query
+    global $ID_SIZE;
+    global $NAME_SIZE;
+    global $NOTE_SIZE;
+    $sql = "CREATE TABLE $table_name (
+      id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
+      name VARCHAR($NAME_SIZE) NOT NULL COMMENT 'Name',
+      opportunity_id INT($ID_SIZE) NOT NULL COMMENT 'Opportunity',
+      notes VARCHAR($NOTE_SIZE) COMMENT 'Notes',
+      PRIMARY KEY (id),
+      FOREIGN KEY (opportunity_id) REFERENCES opportunities_primary(id)
+    ) COMMENT = 'Projects'";
 
     query($sql, "Created $table_name table", false);
   }
@@ -529,12 +643,12 @@
     // Construct query
     global $ID_SIZE;
     $sql = "CREATE TABLE $table_name (
-      opportunity_id INT($ID_SIZE) NOT NULL,
-      technology_id INT($ID_SIZE) NOT NULL,
+      opportunity_id INT($ID_SIZE) NOT NULL COMMENT 'Opportunity',
+      technology_id INT($ID_SIZE) NOT NULL COMMENT 'Technology',
       UNIQUE KEY (opportunity_id, technology_id),
       FOREIGN KEY (opportunity_id) REFERENCES opportunities(id),
       FOREIGN KEY (technology_id) REFERENCES technologies(id)
-    )" COMMENT = 'Opportunity-technology junction';
+    ) COMMENT = 'Opportunity-technology junction'";
 
     query($sql, "Created $table_name table", false);
   }
@@ -547,12 +661,12 @@
     // Construct query
     global $ID_SIZE;
     $sql = "CREATE TABLE $table_name (
-      opportunity_id INT($ID_SIZE) NOT NULL,
-      solution_id INT($ID_SIZE) NOT NULL,
+      opportunity_id INT($ID_SIZE) NOT NULL COMMENT 'Opportunity',
+      solution_id INT($ID_SIZE) NOT NULL COMMENT 'Solution',
       UNIQUE KEY (opportunity_id, solution_id),
       FOREIGN KEY (opportunity_id) REFERENCES opportunities(id),
       FOREIGN KEY (solution_id) REFERENCES solutions(id)
-    )" COMMENT = 'Opportunity-solution junction';
+    ) COMMENT = 'Opportunity-solution junction'";
 
     query($sql, "Created $table_name table", false);
   }
@@ -565,12 +679,12 @@
     // Construct query
     global $ID_SIZE;
     $sql = "CREATE TABLE $table_name (
-      opportunity_id INT($ID_SIZE) NOT NULL,
-      misc_id INT($ID_SIZE) NOT NULL,
+      opportunity_id INT($ID_SIZE) NOT NULL COMMENT 'Opportunity',
+      misc_id INT($ID_SIZE) NOT NULL COMMENT 'Misc',
       UNIQUE KEY (opportunity_id, misc_id),
       FOREIGN KEY (opportunity_id) REFERENCES opportunities(id),
       FOREIGN KEY (misc_id) REFERENCES misc(id)
-    )" COMMENT = 'Opportunity-misc junction';
+    ) COMMENT = 'Opportunity-misc junction'";
 
     query($sql, "Created $table_name table", false);
   }
@@ -584,13 +698,13 @@
     global $ID_SIZE;
     global $CURRENCY_SIZE;
     $sql = "CREATE TABLE $table_name (
-      opportunity_id INT($ID_SIZE) NOT NULL,
-      partner_id INT($ID_SIZE) NOT NULL,
-      partner_rate FLOAT($CURRENCY_SIZE, 2), # FIXME: Make DEFAULT 0?
+      opportunity_id INT($ID_SIZE) NOT NULL COMMENT 'Opportunity',
+      partner_id INT($ID_SIZE) NOT NULL COMMENT 'Partner',
+      partner_rate FLOAT($CURRENCY_SIZE, 2) COMMENT 'Rate', # FIXME: Make DEFAULT 0?
       CONSTRAINT pk PRIMARY KEY (opportunity_id, partner_id),
       FOREIGN KEY (opportunity_id) REFERENCES opportunities(id),
       FOREIGN KEY (partner_id) REFERENCES partners(id)
-    )" COMMENT = 'Opportunity-partner junction';
+    ) COMMENT = 'Opportunity-partner junction'";
 
     query($sql, "Created $table_name table", false);
   }
@@ -604,13 +718,13 @@
     global $ID_SIZE;
     global $CURRENCY_SIZE;
     $sql = "CREATE TABLE $table_name (
-      opportunity_id INT($ID_SIZE) NOT NULL,
-      consultant_id INT($ID_SIZE) NOT NULL,
-      consultant_rate FLOAT($CURRENCY_SIZE, 2), # FIXME: Make DEFAULT 0?
+      opportunity_id INT($ID_SIZE) NOT NULL COMMENT 'Opportunity',
+      consultant_id INT($ID_SIZE) NOT NULL COMMENT 'Consultant',
+      consultant_rate FLOAT($CURRENCY_SIZE, 2) COMMENT 'Rate', # FIXME: Make DEFAULT 0?
       CONSTRAINT pk PRIMARY KEY (opportunity_id, consultant_id),
       FOREIGN KEY (opportunity_id) REFERENCES opportunities(id),
       FOREIGN KEY (consultant_id) REFERENCES consultants(id)
-    )" COMMENT = 'Opportunity-consultant junction';
+    ) COMMENT = 'Opportunity-consultant junction'";
 
     query($sql, "Created $table_name table", false);
   }
@@ -624,13 +738,13 @@
     global $ID_SIZE;
     global $BOOLEAN_SIZE;
     $sql = "CREATE TABLE $table_name (
-      consultant_id INT($ID_SIZE) NOT NULL,
-      partner_id INT($ID_SIZE) NOT NULL,
+      consultant_id INT($ID_SIZE) NOT NULL COMMENT 'Consultant',
+      partner_id INT($ID_SIZE) NOT NULL COMMENT 'Partner',
       is_current BIT($BOOLEAN_SIZE),
       CONSTRAINT pk PRIMARY KEY (consultant_id, partner_id),
       FOREIGN KEY (consultant_id) REFERENCES consultants(id),
       FOREIGN KEY (partner_id) REFERENCES partners(id)
-    )" COMMENT = 'Consultant-partner junction';
+    ) COMMENT = 'Consultant-partner junction'";
 
     query($sql, "Created $table_name table", false);
   }

@@ -1,0 +1,91 @@
+* {
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+html, body {
+	background-color: white;
+	border: 0px solid red;
+	min-height: 100%; /* NOTE: Appears to apply only to html (works well) */
+	height: auto;
+	width: 100%;
+	padding: 0;
+	margin: 0;
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+	background-color: white;
+}
+
+h1, h2, h3, h4, h5, h6, p {
+	margin: 0;
+	padding: 0;
+}
+
+ol, ul, li {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+
+form {
+	background-color: firebrick;
+  width: 100%;
+	height: auto;
+}
+
+.viewpane {
+	width: auto;
+	height: auto;
+	background-color: white;
+	/*border: 1px solid black;*/
+	margin: 10px;
+	padding: 10px;
+}
+
+body > .viewpane {
+	margin: 18px;
+	border: 0px solid black;
+	box-shadow: 0 2px 8px black;
+	background-color: honeydew;
+}
+
+.viewpane > * {
+	margin-bottom: 10px;
+	padding: 10px;
+
+	width: 100%;
+	height: auto;
+	background-color: white;
+	border: 1px dashed grey;
+	border-radius: 10px;
+}
+
+.content > .searchitem {
+	height: auto;
+	width: 24em;
+	/*background-color: aquamarine;*/
+	/*background-color: paleturquoise;*/
+	background-color: palegreen;
+	display: inline-block;
+	box-shadow: 0px 1px 6px dimgrey;
+	/*border: 1px solid black;*/
+}
+
+.profile > .content > .
+
+.content > .searchitem:hover {
+	/*background-color: springgreen;*/
+	box-shadow: 0px 1px 7px black;
+	opacity: 0.8;
+}
+
+.viewpane > *:last-child {
+	margin-bottom: 0px;
+}
+
+.header > *, .footer > * {
+	margin-right: 5px;
+}
