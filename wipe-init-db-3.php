@@ -933,10 +933,10 @@
     $columns = array("name");
     $values = array(
       "primary", "secondary", "tertiary", "lookup", "junction", "ratings",
-      "primary-primary-junction",
-      "primary-secondary junction",
-      "primary-lookup-junction",
-      "primary-junction-junction"
+      "primary_primary_junction",
+      "primary_secondary_junction",
+      "primary_lookup_junction",
+      "primary_junction_junction"
     );
     $rows = array();
     foreach ($values as $value) {
@@ -1050,7 +1050,7 @@
       array(
         $columns[0]=>"partner_vertical_junction",
         $columns[1]=>"Partner-vertical junction",
-        $columns[2]=>"primary-lookup-junction",
+        $columns[2]=>"primary_lookup_junction",
         $columns[3]=>0,
         $columns[4]=>"",
         $columns[5]=>$tables['partner_vertical_junction']
@@ -1066,7 +1066,7 @@
       array(
         $columns[0]=>"partner_region_junction",
         $columns[1]=>"Partner-region junction",
-        $columns[2]=>"primary-lookup-junction",
+        $columns[2]=>"primary_lookup_junction",
         $columns[3]=>0,
         $columns[4]=>"",
         $columns[5]=>$tables['partner_region_junction']
@@ -1122,7 +1122,7 @@
       array(
         $columns[0]=>"opportunity_partner_junction",
         $columns[1]=>"Opportunity-partner junction",
-        $columns[2]=>"primary-primary-junction",
+        $columns[2]=>"primary_primary_junction",
         $columns[3]=>0,
         $columns[4]=>"",
         $columns[5]=>$tables['opportunity_partner_junction']
@@ -1130,7 +1130,7 @@
       array(
         $columns[0]=>"opportunity_consultant_junction",
         $columns[1]=>"Opportunity-consultant junction",
-        $columns[2]=>"primary-primary-junction",
+        $columns[2]=>"primary_primary_junction",
         $columns[3]=>0,
         $columns[4]=>"",
         $columns[5]=>$tables['opportunity_consultant_junction']
@@ -1146,7 +1146,7 @@
       array(
         $columns[0]=>"project_technology_junction",
         $columns[1]=>"Project-technology junction",
-        $columns[2]=>"primary-lookup-junction",
+        $columns[2]=>"primary_lookup_junction",
         $columns[3]=>0,
         $columns[4]=>"",
         $columns[5]=>$tables['project_technology_junction']
@@ -1154,7 +1154,7 @@
       array(
         $columns[0]=>"project_solution_junction",
         $columns[1]=>"Project-solution junction",
-        $columns[2]=>"primary-lookup-junction",
+        $columns[2]=>"primary_lookup_junction",
         $columns[3]=>0,
         $columns[4]=>"",
         $columns[5]=>$tables['project_solution_junction']
@@ -1162,7 +1162,7 @@
       array(
         $columns[0]=>"project_misc_junction",
         $columns[1]=>"Project-misc junction",
-        $columns[2]=>"primary-lookup-junction",
+        $columns[2]=>"primary_lookup_junction",
         $columns[3]=>0,
         $columns[4]=>"",
         $columns[5]=>$tables['project_misc_junction']
@@ -1170,7 +1170,7 @@
       array(
         $columns[0]=>"project_partner_junction",
         $columns[1]=>"Project-partner junction",
-        $columns[2]=>"primary-junction-junction",
+        $columns[2]=>"primary_junction_junction",
         $columns[3]=>0,
         $columns[4]=>"",
         $columns[5]=>$tables['project_partner_junction']
@@ -1178,7 +1178,7 @@
       array(
         $columns[0]=>"project_consultant_junction",
         $columns[1]=>"Project-consultant junction",
-        $columns[2]=>"primary-junction-junction",
+        $columns[2]=>"primary_junction_junction",
         $columns[3]=>0,
         $columns[4]=>"",
         $columns[5]=>$tables['project_consultant_junction']
@@ -1186,7 +1186,7 @@
       array(
         $columns[0]=>"consultant_partner_junction",
         $columns[1]=>"Consultant-partner juction",
-        $columns[2]=>"primary-primary-junction",
+        $columns[2]=>"primary_primary_junction",
         $columns[3]=>0,
         $columns[4]=>"",
         $columns[5]=>$tables['consultant_partner_junction']
@@ -1686,31 +1686,31 @@
 
   // Populate tables that do no need to be read from the workbook
   function populateTables() {
-    populate_table_types_meta();
-    populate_tables_meta();
-    populate_table_fk_meta();
+    // populate_table_types_meta();
+    // populate_tables_meta();
+    // populate_table_fk_meta();
 
-    populate_ratings();
-    populate_ratings_simple();
+    // populate_ratings();
+    // populate_ratings_simple();
+    //
+    // populate_partner_strengths();
+    // populate_technologies();
+    // populate_solutions();
+    // populate_misc();
 
-    populate_partner_strengths();
-    populate_technologies();
-    populate_solutions();
-    populate_misc();
-
-    populate_verticals();
-    populate_regions();
-
-    populate_opportunity_statuses();
-    populate_consultant_rating_areas();
+    // populate_verticals();
+    // populate_regions();
+    //
+    // populate_opportunity_statuses();
+    // populate_consultant_rating_areas();
   }
 
   // Main function
   function execute() {
     connect();
     //createDatabase();
-    selectDatabase();
-    initTableIds();
+    //selectDatabase();
+    //initTableIds();
     //createAllTables();
     //populateTables();
     disconnect();

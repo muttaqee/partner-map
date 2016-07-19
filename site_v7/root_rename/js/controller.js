@@ -106,25 +106,52 @@ function Partner(id, name) {
   }
 }
 
-function Table(name, columns) {
-  this.name = name;
-  this.columns = columns;
+// FIXME: Remove?
+// function Table(name, columns) {
+//   this.name = name;
+//   this.columns = columns;
+//
+//   this.addColumns = function(columns) {
+//     if (typeof columns === "object") {
+//       // Push each column to the end of the columns array
+//       this.columns.push.apply(this.columns, columns);
+//     }
+//   }
+// }
 
-  this.addColumns = function(columns) {
-    if (typeof columns === "object") {
-      // Push each column to the end of the columns array
-      this.columns.push.apply(this.columns, columns);
-    }
-  }
+//------------------------------------------------------------------------------
+// Begin here // FIXME
+//------------------------------------------------------------------------------
+
+function Table(id, name, label, type, is_searchable, rating_table) {
+  this.id = id;
+  this.name = name;
+  this.label = label;
+  this.type = type;
+  this.is_searchable = is_searchable;
+  this.rating_table = rating_table; // Name, not table object
+}
+
+function LookupSet(table, value_set) {
+  this.table = table;
+  this.value_set = value_set;
 }
 
 function Model() {
   // Database and table names
-  var dbname = "";
+  var dbname = "sas_app_db"; // FIXME: Put in global scope
   var tables = {
     primary: [],
+    secondary: [],
+    tertiary: [],
     lookup: [],
-    junction: []
+    junction: [],
+    ratings: [],
+    primary_primary_junction: [],
+    primary_secondary_junction: [],
+    primary_lookup_junction: [],
+    primary_junction_junction: [],
+    other: []
   };
 
   // Lookup entities
@@ -150,13 +177,36 @@ function Model() {
 
   };
 
-  this.addTable = function(table_name) {
-    if (typeof table_name == "string") {
-      if (table_name.endsWith("_junction") || table_name.endsWith("_ratings")) {
-        //tables.junction // FIXME: Left off - EOB 7/14
-      }
+  // FIXME: Draw from table_types_meta
+  this.addTable = function(table) {
+    // table must be Table object
+    if (table.type === "primary"
+    || table.type === "secondary"
+    || table.type === "tertiary"
+    || table.type === "lookup"
+    || table.type === "junction"
+    || table.type === "ratings"
+    || table.type === "primary_primary_junction"
+    || table.type === "primary_secondary_junction"
+    || table.type === "primary_lookup_junction"
+    || table.type === "primary_junction_junction") {
+      tables[table.type].push(table);
+    } else {
+      tables["other"].push(table);
     }
   }
+
+  this.getTables = function() {
+    return tables;
+  }
+
+  // this.addTable = function(table_name) {
+  //   if (typeof table_name == "string") {
+  //     if (table_name.endsWith("_junction") || table_name.endsWith("_ratings")) {
+  //       //tables.junction // FIXME: Left off - EOB 7/14
+  //     }
+  //   }
+  // }
 
   this.addPartner = function() {
     // FIXME: INSERT PARTNER IF DOES NOT EXIST
@@ -231,7 +281,7 @@ function View() {
 }
 
 var m = new Model();
-var v = new View();
+var v;
 
 function buildModel() {
   // FIXME
@@ -243,9 +293,9 @@ function buildModel() {
 
   });
   query_str = "SELECT * FROM ratings_simple;";
-  query(query_str, function(data)) {
+  query(query_str, function(data) {
 
-  }
+  });
 
   // Lookup tables
 }
@@ -254,14 +304,89 @@ function buildView() {
   // FIXME
 }
 
+function loadLookupValues() {
+  var lookup_tables = m.getTables()['lookup'];
+  // for ()
+}
+
+function loadFKs() {
+  str = "SELECT * FROM table_fk_meta";
+}
+
+// Generic table load function
+function loadTable(table_name) {
+  query_str = "SELECT * FROM " + table_name;
+  query(query_str, function(data) {
+    var rows = JSON.parse(data);
+  });
+}
+
+function loadTables() {
+
+  // Get rows of tables from tables_meta
+  str = "SELECT * FROM tables_meta";
+  query(str, function(data) {
+    var rows = JSON.parse(data);
+    for (var i = 0; i < rows.length; i += 1) {
+      var id = 0;
+      var name = "";
+      var label = "";
+      var type = "";
+      var is_searchable = false;
+      var rating_table = "";
+      // id
+      id = rows[i]['id'];
+      // name
+      name = rows[i]['name'];
+      // label
+      if (rows[i]['label'] === undefined || rows[i]['label'] === "") {
+        label = undefined;
+      } else {
+        label = rows[i]['label'];
+      }
+      // type
+      if (rows[i]['type'] === undefined || rows[i]['type'] === "") {
+        type = "other";
+      } else {
+        type = rows[i]['type'];
+      }
+      // is_searchable
+      if (rows[i]['is_searchable'] === undefined || rows[i]['is_searchable'] === ""
+      || rows[i]['is_searchable'] === "0" || rows[i]['is_searchable'] === 0
+      || rows[i]['is_searchable'] === "false" || rows[i]['is_searchable'] === false) {
+        is_searchable = false;
+      } else {
+        is_searchable = true;
+      }
+      // rating_table
+      if (rows[i]['rating_table'] === undefined || rows[i]['rating_table'] === ""
+      || rows[i]['rating_table'] === false) {
+        rating_table = "";
+      } else {
+        rating_table = rows[i]['rating_table'];
+      }
+      var table = new Table(id, name, label, type, is_searchable, rating_table);
+      m.addTable(table);
+    }
+
+    // FIXME: Remove
+    $('body').append('<pre>'+JSON.stringify(m.getTables(), null, 4)+'</pre>');
+    alert("MODEL TABLES: " + JSON.stringify(m.getTables(), null, 4)); // FIXME: Remove
+  });
+
+}
+
 // Load lookup values from db: ratings, filters (names, ids)
 function load() {
+  loadTables();
+  loadFKs();
+  loadLookupValues();
   // FIXME
     // Load values into model
-    buildModel();
+  //buildModel();
 
     // Build view elements
-    buildView();
+  //buildView();
 
     // Render view
     // v.render();
@@ -269,6 +394,7 @@ function load() {
 
 // Program start
 function main() {
+  alert("Ex"); // FIXME
   load();
   setTimeout(function() {
     buildView();

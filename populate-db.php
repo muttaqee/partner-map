@@ -693,16 +693,16 @@
 
   // Populate tables that do no need to be read from the workbook
   function populateTables() {
-    // populate_partners(); # FIXME: Uncomment (works)
-    // populate_partner_strength_ratings(); # FIXME: Uncomment (works)
-    // populate_partner_technology_ratings(); # FIXME: Uncomment (works)
-    // populate_partner_solution_ratings(); # FIXME: Uncomment (works)
-    // populate_partner_misc_ratings(); # FIXME: Uncomment (works)
-    // populate_partner_vertical_junction(); # FIXME: Uncomment (works)
-    // populate_partner_region_junction(); # FIXME: Uncomment (works)
-    // populate_consultants(); # FIXME: MAKESHIFT INSERTS - whole name stored in last_name, and is_rejected set to 0 for all rows
-    // populate_consultant_ratings();# FIXME: Depends on MAKESHIFT consultants table
-    // populate_consultant_partner_junction(); # FIXME: Used MAKESHIFT consultants table; not all partner ids found in partners
+    //populate_partners(); # FIXME: Uncomment (works)
+    //populate_partner_strength_ratings(); # FIXME: Uncomment (works)
+    //populate_partner_technology_ratings(); # FIXME: Uncomment (works)
+    //populate_partner_solution_ratings(); # FIXME: Uncomment (works)
+    //populate_partner_misc_ratings(); # FIXME: Uncomment (works)
+    //populate_partner_vertical_junction(); # FIXME: Uncomment (works)
+    //populate_partner_region_junction(); # FIXME: Uncomment (works)
+    //populate_consultants(); # FIXME: MAKESHIFT INSERTS - whole name stored in last_name, and is_rejected set to 0 for all rows
+    //populate_consultant_ratings();# FIXME: Depends on MAKESHIFT consultants table
+    //populate_consultant_partner_junction(); # FIXME: Used MAKESHIFT consultants table; not all partner ids found in partners
   }
 
   // Main function
