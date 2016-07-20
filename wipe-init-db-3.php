@@ -173,8 +173,8 @@
       id INT($ID_SIZE) NOT NULL AUTO_INCREMENT,
       name VARCHAR($NAME_SIZE) NOT NULL UNIQUE,   /* Name in db */
       label VARCHAR($NAME_SIZE),                  /* Name to display in UI */
-      type VARCHAR($NAME_SIZE),                   /* Functional category */
-      is_searchable BIT($BOOLEAN_SIZE) DEFAULT 0, /* Tables entities searchable from main UI (useful for blocking out uninteresting _primary tables) */
+      type VARCHAR($NAME_SIZE) NOT NULL,          /* Functional category */
+      is_searchable BIT($BOOLEAN_SIZE) NOT NULL DEFAULT 0, /* Tables entities searchable from main UI (useful for blocking out uninteresting _primary tables) */
       rating_table VARCHAR($NAME_SIZE),           /* Accompanying ratings table, if there is one (useful if there is more than one rating lookup table) */
       PRIMARY KEY (id),
       FOREIGN KEY (type) REFERENCES table_types_meta(name)
