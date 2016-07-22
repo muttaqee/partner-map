@@ -1080,7 +1080,7 @@
         $columns[5]=>$tables['consultants_primary']
       ),
       array(
-        $columns[0]=>"consultant_rating_areas",
+        $columns[0]=>"consultant_rating_areas_lookup",
         $columns[1]=>"Consultant rating areas",
         $columns[2]=>"lookup",
         $columns[3]=>0,
