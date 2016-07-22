@@ -64,7 +64,7 @@
   $db_host = $config["host"];
   $db_user = $config["username"];
   $db_pass = $config["password"];
-  $db_name = $config["database"];
+  $db_name = "third_party_channel_management";
 
   // Connect to MySQL server
   function connect() {
@@ -124,8 +124,8 @@
       } else {
         report("Error: " . mysql_error());
       }
-    } else if ($success_message) {
-      smallReport($success_message);
+    } else {
+      report($query_string);
     }
   }
 
@@ -1711,11 +1711,11 @@
   // Main function
   function execute() {
     connect();
-    //createDatabase();
-    //selectDatabase();
-    //initTableIds();
-    //createAllTables();
-    //populateTables();
+    createDatabase();
+    selectDatabase();
+    initTableIds();
+    createAllTables();
+    populateTables();
     disconnect();
   }
 
