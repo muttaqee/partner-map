@@ -207,6 +207,44 @@ function orderTasks() {
   });
 }
 
+// // Executes asynchronous functions before returning
+// function asyncLoop(iterations, func, callback) {
+//
+// }
+//
+// //
+// function asyncLoop(iterations, func, callback) {
+//   var index = 0;
+//   var done = false;
+//   var loop = {
+//
+//     next: function() {
+//       if (done) {
+//         return;
+//       }
+//       if (index < iterations) {
+//         index++;
+//         func(loop);
+//       } else {
+//         done = true;
+//         callback();
+//       }
+//     },
+//
+//     iteration: function() {
+//       return index - 1;
+//     },
+//
+//     break: function() {
+//       done = true;
+//       callback();
+//     }
+//   };
+//
+//   loop.next();
+//   return loop;
+// }
+
 /* Object constructors */
 
 // This object reflects the tables_meta relation schema
@@ -308,13 +346,6 @@ function Model(callback) {
         self.addTable(t); // FIXME: Careful - 'this' has to refer to Model m
       }
 
-      alert("Tables: " + JSON.stringify(tables, null, 4));// FIXME: Remove
-
-      var s = "";
-      for (var key in tables) {
-        s = s + key + ": "+ tables[key].length + "\n";
-      }
-      alert("Table counts...\n" + s);
       if (typeof callback == "function") {
         callback();
       }
@@ -339,28 +370,67 @@ function Model(callback) {
   }
 
   var loadLookupSets = function(callback) {
-    alert("Loading lookup sets"); // FIXME: Remove
-    alert("Loading lookup sets. Num lookup tables: " + tables["lookup"].length); // FIXME: Remove
-    var loadFunctions = [];
-    for (var i = 0; i < tables["lookup"].length; i += 1) {
-      // loadFunctions.push(function() {
-      //   buildLookupSetFromTable(tables["lookup"][i], function(set) {
-      //     lookup_sets.push(set);
-      //   });
-      // });
-      var t = tables["lookup"][i];
-      alert("Lookup table " + i + ": " + (typeof t)); // FIXME: Remove [NOTE: DEFINED HERE]
-      var f = function(callback) {
-        setTimeout(function() {
-          buildLookupSetFromTable(t, function(set) {
-            lookup_sets[t.id] = set;
-          //   alert("Loaded new set - lookup_sets:\n" + JSON.stringify(lookup_sets, null, 4));
-          //   callback();
-          });
-          callback();
-        }, 500);
+    var iterations = tables["lookup"].length;
+    var index = 0;
+    var tryCallback = function() {
+      index += 1;
+
+      var ct = 0;
+      for (var key in lookup_sets) {
+        ct += 1;
       }
-      loadFunctions.push(f);
+      if (index >= iterations) {
+        callback();
+      }
+    }
+
+    for (var i = 0; i < iterations; i += 1) {
+      var t = tables["lookup"][i];
+      buildLookupSetFromTable(t, function(set) {
+        lookup_sets[set.table_id] = set;
+        tryCallback();
+      });
+    }
+  }
+    // var loadFunctions = [];
+    // var args_array = [];
+    // for (var i = 0; i < tables["lookup"].length; i += 1) {
+    //   // loadFunctions.push(function() {
+    //   //   buildLookupSetFromTable(tables["lookup"][i], function(set) {
+    //   //     lookup_sets.push(set);
+    //   //   });
+    //   // });
+    //
+    //   var t = tables["lookup"][i];
+    //   // Call buildLookupSetFromTable(t, function(set) { lookup_sets[t.id] = set })
+    //
+    //   // alert("Lookup table " + i + ": " + (typeof t)); // FIXME: Remove [NOTE: DEFINED HERE]
+    //   var f = function(callback) {
+    //     setTimeout(function() {
+    //       buildLookupSetFromTable(t, function(set) {
+    //         lookup_sets[t.id] = set;
+    //       });
+    //       callback();
+    //     }, 500);
+    //   }
+    //   loadFunctions.push(f);
+
+      // var t = tables["lookup"][i];
+      // alert("Lookup table " + i + ": " + (typeof t)); // FIXME: Remove [NOTE: DEFINED HERE]
+      // var f = function(callback) {
+      //   setTimeout(function() {
+      //     buildLookupSetFromTable(t, function(set) {
+      //       lookup_sets[t.id] = set;
+      //     //   alert("Loaded new set - lookup_sets:\n" + JSON.stringify(lookup_sets, null, 4));
+      //     //   callback();
+      //     });
+      //     callback();
+      //   }, 500);
+      // }
+      // loadFunctions.push(f);
+
+      //args_array.push([t, ); // FIXME: Trying this new thing
+
       // loadFunctions.push(function(callback) {
       //   buildLookupSetFromTable(tables["lookup"][i], function(set) {
       //     lookup_sets[tables["lookup"][i].id] = set;
@@ -373,7 +443,7 @@ function Model(callback) {
       //   lookup_sets[tables["lookup"][i].id] = set;
       //   alert("Loaded new set - lookup_sets:\n" + JSON.stringify(lookup_sets, null, 4));
       // });
-    }
+
     // var f1 = function(callback) {
     //   setTimeout(function() {
     //     alert("task 1");
@@ -386,7 +456,11 @@ function Model(callback) {
     //     callback();
     //   }, 500);
     // };
-    executeTasks(loadFunctions, callback);
+
+    //buildLookupSetFromTable.apply(this, ) // FIXME: Trting this new thing
+
+    //executeTasks(loadFunctions, callback);
+
     // executeTasks(loadFunctions, function(callback) {
     //   alert("Lookup sets: " + JSON.stringify(lookup_sets, null, 4));// FIXME: Remove
     //   if (typeof callback == "function") {
@@ -404,7 +478,7 @@ function Model(callback) {
     // } // Wait
     // alert("Finished loading lookup sets: " + len); // FIXME: Remove
 
-  }
+
 
   this.setDatabaseName = function(str) {
     if (typeof str === "string") {
@@ -511,10 +585,11 @@ function Model(callback) {
     alert("Start initialize"); // FIXME: Remove
     executeTasks(loadTableTypes, loadTables, loadLookupSets,
     function(callback) {
+      var count = 0;
       for (var key in lookup_sets) {
-        alert("lookup_sets." + key + ":\n" + JSON.stringify(lookup_sets[key], null, 4));
+        count += 1;
       }
-      // alert("Final task - show lookup_sets:\n" + JSON.stringify(lookup_sets, null, 4));
+      alert("Final task - show lookup_sets:\n" + " ("+ count +") " + JSON.stringify(lookup_sets, null, 4));
       callback();
     });
     //loadTableTypes();
@@ -753,11 +828,57 @@ function testB() {
   orderTasks(f1, f2, f3);
 }
 
+// Test: Using apply with N > 1 arguments per function call
+function testC() {
+  var fn2 = function(arg1, arg2) {
+    alert(arg1 + " squared is " + arg2);
+  };
+
+  var fn1 = function(arg) {
+    setTimeout(function() {
+      alert("Result: " + arg);
+    }, 450);
+  };
+
+  var fn = function(a, b) {
+    alert("a: " + a + ", b: " + b);
+  };
+
+  var args_list = [];
+  var func_list = [];
+  var tasks = [];
+  var j;
+  for (var i = 2; i < 5; i += 1) {
+    j = i * i;
+    args_list.push(j);
+
+    // fn(i, j);
+    // var f = function() {
+    //   fn1(j);
+    // };
+    func_list.push(fn1);
+    tasks.push(function(callback) {
+      fn1(arguments[1]);
+      callback();
+    });
+  }
+
+  alert("Size of func list: " + func_list.length);
+  for (var k = 0; k < func_list.length; k += 1) {
+    alert(typeof func_list[k]);
+    func_list[k](args_list[k]); // Works
+    fn1(args_list[k]); // Works
+  }
+  alert("Done with async tasks?"); // FIXME: This has to wait for the functions above to finish.
+  // fn1.apply(this, args_list);
+}
+
 // Program start
 function main() {
   alert("Start main"); // FIXME
   //testA(); // FIXME: works
   //testB(); // FIXME: fails
+  //testC();
   m = new Model(function(data) {
     alert("Done initializing model: " + data);
   });
