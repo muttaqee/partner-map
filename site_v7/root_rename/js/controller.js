@@ -288,6 +288,18 @@ function LookupSet(table_id, label, values_set) {
   }
 }
 
+// Object: Represents a foreign key from one table column to another
+// Reflects the table_fk_meta relation schema
+// Params:
+// table_id           - id of referring table
+// reference_table_id - id of table referred to
+// fk_column          - column name in referring table
+function ForeignKey(table_id, reference_table_id, fk_column) {
+  this.table_id = table_id;
+  this.reference_table_id = reference_table_id;
+  this.fk_column = fk_column;
+}
+
 function Model(callback) {
   // Context
   var self = this;
@@ -306,10 +318,12 @@ function Model(callback) {
   // Lookup sets: {table_id: lookupSet, table_id: lookupSet, ...}
   var lookup_sets = {};
 
-  /* Private nitiation functions (can be used to "refresh" variables) */
+  // Foreign keys: {"table id 1": [Fkey1, FKey2, ...], "table id 2": [...], ...}
+  var foreign_keys = {};
+
+  /* Private initiation functions (can be used to "refresh" variables) */
 
   var loadTableTypes = function(callback) {
-    alert("Loading table types"); // FIXME: Remove
     table_types.push("other");
     var query_str = "SELECT * FROM table_types_meta";
     query(query_str, function(data) {
@@ -317,8 +331,6 @@ function Model(callback) {
       for (var i = 0; i < rows.length; i += 1) {
         table_types.push(rows[i]["name"]);
       }
-
-      alert("Table types: " + JSON.stringify(table_types, null, 4));// FIXME: Remove
 
       if (typeof callback == "function") {
         callback();
@@ -346,7 +358,7 @@ function Model(callback) {
         self.addTable(t); // FIXME: Careful - 'this' has to refer to Model m
       }
 
-      if (typeof callback == "function") {
+      if (typeof callback === "function") {
         callback();
       }
     });
@@ -392,93 +404,23 @@ function Model(callback) {
       });
     }
   }
-    // var loadFunctions = [];
-    // var args_array = [];
-    // for (var i = 0; i < tables["lookup"].length; i += 1) {
-    //   // loadFunctions.push(function() {
-    //   //   buildLookupSetFromTable(tables["lookup"][i], function(set) {
-    //   //     lookup_sets.push(set);
-    //   //   });
-    //   // });
-    //
-    //   var t = tables["lookup"][i];
-    //   // Call buildLookupSetFromTable(t, function(set) { lookup_sets[t.id] = set })
-    //
-    //   // alert("Lookup table " + i + ": " + (typeof t)); // FIXME: Remove [NOTE: DEFINED HERE]
-    //   var f = function(callback) {
-    //     setTimeout(function() {
-    //       buildLookupSetFromTable(t, function(set) {
-    //         lookup_sets[t.id] = set;
-    //       });
-    //       callback();
-    //     }, 500);
-    //   }
-    //   loadFunctions.push(f);
 
-      // var t = tables["lookup"][i];
-      // alert("Lookup table " + i + ": " + (typeof t)); // FIXME: Remove [NOTE: DEFINED HERE]
-      // var f = function(callback) {
-      //   setTimeout(function() {
-      //     buildLookupSetFromTable(t, function(set) {
-      //       lookup_sets[t.id] = set;
-      //     //   alert("Loaded new set - lookup_sets:\n" + JSON.stringify(lookup_sets, null, 4));
-      //     //   callback();
-      //     });
-      //     callback();
-      //   }, 500);
-      // }
-      // loadFunctions.push(f);
-
-      //args_array.push([t, ); // FIXME: Trying this new thing
-
-      // loadFunctions.push(function(callback) {
-      //   buildLookupSetFromTable(tables["lookup"][i], function(set) {
-      //     lookup_sets[tables["lookup"][i].id] = set;
-      //     alert("Loaded new set - lookup_sets:\n" + JSON.stringify(lookup_sets, null, 4));
-      //     callback();
-      //   });
-      // });
-
-      // buildLookupSetFromTable(tables["lookup"][i], function(set) {
-      //   lookup_sets[tables["lookup"][i].id] = set;
-      //   alert("Loaded new set - lookup_sets:\n" + JSON.stringify(lookup_sets, null, 4));
-      // });
-
-    // var f1 = function(callback) {
-    //   setTimeout(function() {
-    //     alert("task 1");
-    //     callback();
-    //   }, 500);
-    // };
-    // var f2 = function(callback) {
-    //   setTimeout(function() {
-    //     alert("task 2");
-    //     callback();
-    //   }, 500);
-    // };
-
-    //buildLookupSetFromTable.apply(this, ) // FIXME: Trting this new thing
-
-    //executeTasks(loadFunctions, callback);
-
-    // executeTasks(loadFunctions, function(callback) {
-    //   alert("Lookup sets: " + JSON.stringify(lookup_sets, null, 4));// FIXME: Remove
-    //   if (typeof callback == "function") {
-    //     callback();
-    //   }
-    // });
-
-    //executeInOrder(loadFunctions);
-    // var len = 0;
-    // while (len < tables["lookup"].length) {
-    //   len = 0;
-    //   for (var key in lookup_sets) {
-    //     len += 1;
-    //   }
-    // } // Wait
-    // alert("Finished loading lookup sets: " + len); // FIXME: Remove
-
-
+  var loadForeignKeys = function(callback) {
+    // Load and store foreign keys as ForeignKey objects
+    var query_str = "SELECT * FROM table_fk_meta";
+    query(query_str, function(data) {
+      var rows = JSON.parse(data);
+      for (var i = 0; i < rows.length; i += 1) {
+        var table_id = rows[i]["table_id"];
+        var reference_table_id = rows[i]["reference_table_id"];
+        var fk_column = rows[i]["fk_column"];
+        self.addForeignKey(new ForeignKey(table_id, reference_table_id, fk_column));
+      }
+      if (typeof callback === "function") {
+        callback();
+      }
+    });
+  }
 
   this.setDatabaseName = function(str) {
     if (typeof str === "string") {
@@ -531,6 +473,11 @@ function Model(callback) {
     }
   }
 
+  // FIXME: implement
+  this.removeTable = function(table_id) {
+
+  }
+
   this.getTablesByType = function(type_str) {
     if (typeof type_str === "string") {
       return tables[table_str] ? tables[type_str].splice() : [];
@@ -556,6 +503,62 @@ function Model(callback) {
   }
 
   /* Lookups and lookup sets */
+
+  // FIXME: implement
+  this.addLookup = function(lookup, table_id) {
+
+  }
+
+  // FIXME: implement
+  this.removeLookup = function(lookup_id, table_id) {
+
+  }
+
+  // FIXME: implement
+  this.addLookupSet = function(lookup_set, table_id) {
+
+  }
+
+  // FIXME: implement
+  this.removeLookupSet = function(table_id) {
+
+  }
+
+  // FIXME: implement
+  this.getLookupSets = function() {
+    // Return sliced array
+  }
+
+  // FIXME: implement
+  this.getLookupSetById = function(table_id) {
+
+  }
+
+  /* Foreign keys */
+
+  this.addForeignKey = function(fkey) {
+    if (fkey instanceof ForeignKey) {
+      if (!foreign_keys[fkey.table_id]) {
+        foreign_keys[fkey.table_id] = [];
+      }
+      foreign_keys[fkey.table_id].push(fkey);
+    }
+  }
+
+  // FIXME: implement
+  this.removeForeignKey = function(fkey_id, table_id) {
+
+  }
+
+  // FIXME: implement
+  this.getForeignKeys = function() {
+    // Returned sliced array
+  }
+
+  // FIXME: implement
+  this.getForeignKeyById = function() {
+
+  }
 
   /* Modification functions */
 
@@ -583,24 +586,15 @@ function Model(callback) {
   // Initialize variables
   var initialize = function() {
     alert("Start initialize"); // FIXME: Remove
-    executeTasks(loadTableTypes, loadTables, loadLookupSets,
+    executeTasks(loadTableTypes, loadTables, loadLookupSets, loadForeignKeys,
     function(callback) {
       var count = 0;
-      for (var key in lookup_sets) {
-        count += 1;
+      for (var key in foreign_keys) {
+        count += foreign_keys[key].length;
       }
-      alert("Final task - show lookup_sets:\n" + " ("+ count +") " + JSON.stringify(lookup_sets, null, 4));
+      alert("Final task - show foreign_keys:\n" + " ("+ count +") " + JSON.stringify(foreign_keys, null, 4));
       callback();
     });
-    //loadTableTypes();
-    // loadTables();
-    // loadLookupSets();
-    //executeInOrder(loadTableTypes, loadTables, loadLookupSets);
-    // loadTableTypes(function() {
-    //   loadTables(function() {
-    //     loadLookupSets();
-    //   });
-    // });
 
     //loadTables();
     alert("End initialize"); // FIXME: Remove
