@@ -248,13 +248,22 @@ function orderTasks() {
 /* Object constructors */
 
 // This object reflects the tables_meta relation schema
-function Table(id, name, label, type, is_searchable, rating_table) {
+function Table(id, name, label, type, is_searchable, rating_table, column_names) {
   this.id = id;
   this.name = name;
   this.label = isNonempty(label) ? label : name;
   this.type = type;
   this.is_searchable = isPositive(is_searchable);
   this.rating_table = isNonempty(rating_table) ? rating_table : null; // (name)
+  this.column_names = column_names;
+
+  this.addColumns = function(str_array) {
+    if (Array.isArray(str_array)) {
+      this.column_names.push.apply(this.column_names, str_array);
+    } else {
+      alert("Error: Attempted to add columns to table " + this.name + ". Expected string array of column names but found " + (typeof str_array));
+    }
+  }
 }
 
 function Lookup(id, type, name) {
@@ -294,10 +303,32 @@ function LookupSet(table_id, label, values_set) {
 // table_id           - id of referring table
 // reference_table_id - id of table referred to
 // fk_column          - column name in referring table
-function ForeignKey(table_id, reference_table_id, fk_column) {
+function ForeignKey(table_id, reference_table_id, fk_column, relationship) {
   this.table_id = table_id;
   this.reference_table_id = reference_table_id;
   this.fk_column = fk_column;
+  this.relationship_to_reference = relationship;
+}
+
+// FIXME: May move to View
+function Filter(foreign_key, lookup_set) {
+  this.foreign_key = foreign_key;
+  this.label = this.foreign_key.relationship_to_reference;
+  this.lookup_set = lookup_set;
+
+  var active = [];
+
+  this.setActive = function(lookup_id) {
+    active.push(this.lookup_set.getLookupById(lookup_id));
+  }
+
+  this.removeActive = function(lookup_id) {
+    active.splice(active.indexOf(this.lookup_set.getLookupById(lookup_id)), 1);
+  }
+
+  this.getActive = function() {
+    return active.slice();
+  }
 }
 
 function Model(callback) {
@@ -305,7 +336,7 @@ function Model(callback) {
   var self = this;
 
   // Database name
-  var dbname = "sas_app_db"; // FIXME: Put in global scope
+  var dbname = "sas_app_db_4"; // FIXME: Put in global scope
 
   // Table types: string array ["type 1", "type 2", ...]
   var table_types = [];
@@ -320,6 +351,10 @@ function Model(callback) {
 
   // Foreign keys: {"table id 1": [Fkey1, FKey2, ...], "table id 2": [...], ...}
   var foreign_keys = {};
+
+  // Filters (FIXME: May move part of this to view?)
+  // {primary_tbl_id: { own: [colnames], junction}}
+  var filters = {};
 
   /* Private initiation functions (can be used to "refresh" variables) */
 
@@ -338,6 +373,18 @@ function Model(callback) {
     });
   }
 
+  var getTableColumns = function(table, callback) {
+    var query_columns_str = "SELECT column_name FROM information_schema.columns WHERE table_schema = '"+dbname+"' AND table_name = '"+table.name+"';";
+    query(query_columns_str, function(data) {
+      var rows = JSON.parse(data);
+      var column_names = [];
+      for (var j = 0; j < rows.length; j += 1) {
+        column_names.push(rows[j]["column_name"]);
+      }
+      callback(table, column_names);
+    });
+  }
+
   var loadTables = function(callback) {
     // Give the object a key-value pair for each table type (i.e. <type>: [])
     for (var i = 0; i < table_types.length; i += 1) {
@@ -347,25 +394,41 @@ function Model(callback) {
     var query_str = "SELECT * FROM tables_meta";
     query(query_str, function(data) {
       var rows = JSON.parse(data);
-      for (var i = 0; i < rows.length; i += 1) {
+      var iterations = rows.length;
+      var index = 0;
+
+      // Only execute callback after all tables have been instantiated
+      var tryCallback = function() {
+        index += 1;
+        if (index >= iterations) {
+          callback();
+        } else {
+        }
+      }
+
+      // Build each table
+      for (var i = 0; i < iterations; i += 1) {
         var id = rows[i]["id"];
         var name = rows[i]["name"];
         var label = rows[i]["label"];
         var type = rows[i]["type"];
         var is_searchable = rows[i]["is_searchable"];
         var rating_table = rows[i]["rating_table"];
-        var t = new Table(id, name, label, type, is_searchable, rating_table);
-        self.addTable(t); // FIXME: Careful - 'this' has to refer to Model m
-      }
 
-      if (typeof callback === "function") {
-        callback();
+        // Create and store the table
+        var t = new Table(id, name, label, type, is_searchable, rating_table, []);
+        self.addTable(t); // FIXME: Careful - 'this' has to refer to Model m
+        // Get column names for this table
+        getTableColumns(t, function(table, column_names) {
+          table.addColumns(column_names);
+          tryCallback();
+        });
       }
     });
   }
 
   var buildLookupSetFromTable = function(lookup_table, callback) {
-    query_str = "SELECT * FROM " + lookup_table.name;
+    var query_str = "SELECT * FROM " + lookup_table.name;
     query(query_str, function(data) {
       var rows = JSON.parse(data);
       var lookup_set = new LookupSet(lookup_table.id, lookup_table.label, {});
@@ -384,13 +447,9 @@ function Model(callback) {
   var loadLookupSets = function(callback) {
     var iterations = tables["lookup"].length;
     var index = 0;
+
     var tryCallback = function() {
       index += 1;
-
-      var ct = 0;
-      for (var key in lookup_sets) {
-        ct += 1;
-      }
       if (index >= iterations) {
         callback();
       }
@@ -414,11 +473,74 @@ function Model(callback) {
         var table_id = rows[i]["table_id"];
         var reference_table_id = rows[i]["reference_table_id"];
         var fk_column = rows[i]["fk_column"];
-        self.addForeignKey(new ForeignKey(table_id, reference_table_id, fk_column));
+        var relationship = rows[i]["relationship_to_reference"];
+        self.addForeignKey(new ForeignKey(table_id, reference_table_id, fk_column, relationship));
       }
       if (typeof callback === "function") {
         callback();
       }
+    });
+  }
+
+  // Load all filters for a given table
+  var loadEntityFilters = function(table_id, callback) {
+    var table = this.getTableById(table_id);
+    if (table) {
+      var t = this.getTableById(table_id);
+      // Initialize if empty
+      if (!filters.hasOwnProperty(table_id)) {
+        filters[table_id] = { own: [], junction: [] };
+      }
+      // Store filters (own ratings columns)
+      if (foreign_keys.hasOwnProperty(table_id)) {
+        var arr = foreign_keys[table_id];
+        for (var i = 0; i < arr.length; i += 1) {
+          if (arr[i].fk_column == "rating_id") {
+            var filt = new Filter(arr[i], lookup_sets[arr[i].reference_table_id]);
+            filters[table_id].push(filt);
+          }
+        }
+      }
+
+      for (var key in foreign_keys) {
+        var arr = foreign_keys[key];
+        for (var i = 0; i < arr.length; i += 1) {
+          // Store filters (primary-lookup junction tables)
+          if ((arr[i].reference_table_id == table_id) && (this.getTableById(arr[i].table_id).type == "primary_lookup_junction")) {
+            var filt = new Filter(arr[i], lookup_sets[])
+          }
+          // Store filters (ratings junction tables)
+          // Store filters (primary-junction tables)
+          // Store filters (primary-primary junction tables)
+        }
+      }
+    } else {
+      alert("Error: Could not load filters for table with id " + table_id + ". Table not found.");
+    }
+
+    // Execute callback
+    callback();
+  }
+
+  // Load filters for all tables
+  var loadFilters = function(callback) {
+    // Get all primary tables
+    var primary_tables = tables["primary"];
+    // Get all junctioned tables
+    for (var table_id in foreign_keys) {
+      for (var i = 0; i < foreign_keys[table_id].length; i += 1) {
+        if (foreign_keys[table_id][i]) {
+
+        }
+      }
+    }
+    //var getfkeys
+
+    // Get all primary columns
+    // Get all junction columns
+    // Execute callback
+    executeTasks(function(callback) {
+      callback();
     });
   }
 
@@ -480,7 +602,7 @@ function Model(callback) {
 
   this.getTablesByType = function(type_str) {
     if (typeof type_str === "string") {
-      return tables[table_str] ? tables[type_str].splice() : [];
+      return tables[table_str] ? tables[type_str].slice() : [];
     }
   }
 
@@ -552,7 +674,11 @@ function Model(callback) {
 
   // FIXME: implement
   this.getForeignKeys = function() {
-    // Returned sliced array
+    var arr = [];
+    for (var key in foreign_keys) {
+      arr.push(foreign_keys[key]);
+    }
+    return arr;
   }
 
   // FIXME: implement
@@ -592,8 +718,9 @@ function Model(callback) {
       for (var key in foreign_keys) {
         count += foreign_keys[key].length;
       }
-      alert("Final task - show foreign_keys:\n" + " ("+ count +") " + JSON.stringify(foreign_keys, null, 4));
+      alert("Final task - show tables:\n" + " ("+ count +") " + JSON.stringify(foreign_keys, null, 4));
       callback();
+      alert("Post callback"); // FIXME: Last
     });
 
     //loadTables();
@@ -754,118 +881,118 @@ var v;
 //     // v.render();
 // }
 
-function testA() {
-  var f1 = function(callback) {
-    setTimeout(function() {
-      alert("task 1");
-      callback();
-    }, 500);
-  };
-  var f2 = function(callback) {
-    setTimeout(function() {
-      alert("task 2");
-      callback();
-    }, 500);
-  };
-  var f3 = function(callback) {
-    setTimeout(function() {
-      alert("task 3");
-      callback();
-    }, 500);
-  };
-
-  var f4 = function(callback) {
-    setTimeout(function() {
-      alert("task A");
-      callback();
-    }, 500);
-  };
-  var f5 = function(callback) {
-    setTimeout(function() {
-      alert("task B");
-      callback();
-    }, 500);
-  };
-  var f6 = function(callback) {
-    setTimeout(function() {
-      alert("task C");
-      callback();
-    }, 500);
-  };
-
-  var e1 = function(callback) {
-    executeTasks(f1, f2, f3, callback);
-  };
-  var e2 = function(callback) {
-    executeTasks(f4, f5, f6, callback);
-  };
-
-  executeTasks(e1, e2); // This works: each must have callback
-}
-
-function testB() {
-  var f1 = function() {
-    setTimeout(function() {
-      alert("Function 1");
-    }, 500);
-  };
-  var f2 = function() {
-    setTimeout(function() {
-      alert("Function 2");
-    }, 500);
-  };
-  var f3 = function() {
-    setTimeout(function() {
-      alert("Function 3");
-    }, 500);
-  };
-  orderTasks(f1, f2, f3);
-}
-
-// Test: Using apply with N > 1 arguments per function call
-function testC() {
-  var fn2 = function(arg1, arg2) {
-    alert(arg1 + " squared is " + arg2);
-  };
-
-  var fn1 = function(arg) {
-    setTimeout(function() {
-      alert("Result: " + arg);
-    }, 450);
-  };
-
-  var fn = function(a, b) {
-    alert("a: " + a + ", b: " + b);
-  };
-
-  var args_list = [];
-  var func_list = [];
-  var tasks = [];
-  var j;
-  for (var i = 2; i < 5; i += 1) {
-    j = i * i;
-    args_list.push(j);
-
-    // fn(i, j);
-    // var f = function() {
-    //   fn1(j);
-    // };
-    func_list.push(fn1);
-    tasks.push(function(callback) {
-      fn1(arguments[1]);
-      callback();
-    });
-  }
-
-  alert("Size of func list: " + func_list.length);
-  for (var k = 0; k < func_list.length; k += 1) {
-    alert(typeof func_list[k]);
-    func_list[k](args_list[k]); // Works
-    fn1(args_list[k]); // Works
-  }
-  alert("Done with async tasks?"); // FIXME: This has to wait for the functions above to finish.
-  // fn1.apply(this, args_list);
-}
+// function testA() {
+//   var f1 = function(callback) {
+//     setTimeout(function() {
+//       alert("task 1");
+//       callback();
+//     }, 500);
+//   };
+//   var f2 = function(callback) {
+//     setTimeout(function() {
+//       alert("task 2");
+//       callback();
+//     }, 500);
+//   };
+//   var f3 = function(callback) {
+//     setTimeout(function() {
+//       alert("task 3");
+//       callback();
+//     }, 500);
+//   };
+//
+//   var f4 = function(callback) {
+//     setTimeout(function() {
+//       alert("task A");
+//       callback();
+//     }, 500);
+//   };
+//   var f5 = function(callback) {
+//     setTimeout(function() {
+//       alert("task B");
+//       callback();
+//     }, 500);
+//   };
+//   var f6 = function(callback) {
+//     setTimeout(function() {
+//       alert("task C");
+//       callback();
+//     }, 500);
+//   };
+//
+//   var e1 = function(callback) {
+//     executeTasks(f1, f2, f3, callback);
+//   };
+//   var e2 = function(callback) {
+//     executeTasks(f4, f5, f6, callback);
+//   };
+//
+//   executeTasks(e1, e2); // This works: each must have callback
+// }
+//
+// function testB() {
+//   var f1 = function() {
+//     setTimeout(function() {
+//       alert("Function 1");
+//     }, 500);
+//   };
+//   var f2 = function() {
+//     setTimeout(function() {
+//       alert("Function 2");
+//     }, 500);
+//   };
+//   var f3 = function() {
+//     setTimeout(function() {
+//       alert("Function 3");
+//     }, 500);
+//   };
+//   orderTasks(f1, f2, f3);
+// }
+//
+// // Test: Using apply with N > 1 arguments per function call
+// function testC() {
+//   var fn2 = function(arg1, arg2) {
+//     alert(arg1 + " squared is " + arg2);
+//   };
+//
+//   var fn1 = function(arg) {
+//     setTimeout(function() {
+//       alert("Result: " + arg);
+//     }, 450);
+//   };
+//
+//   var fn = function(a, b) {
+//     alert("a: " + a + ", b: " + b);
+//   };
+//
+//   var args_list = [];
+//   var func_list = [];
+//   var tasks = [];
+//   var j;
+//   for (var i = 2; i < 5; i += 1) {
+//     j = i * i;
+//     args_list.push(j);
+//
+//     // fn(i, j);
+//     // var f = function() {
+//     //   fn1(j);
+//     // };
+//     func_list.push(fn1);
+//     tasks.push(function(callback) {
+//       fn1(arguments[1]);
+//       callback();
+//     });
+//   }
+//
+//   alert("Size of func list: " + func_list.length);
+//   for (var k = 0; k < func_list.length; k += 1) {
+//     alert(typeof func_list[k]);
+//     func_list[k](args_list[k]); // Works
+//     fn1(args_list[k]); // Works
+//   }
+//   alert("Done with async tasks?"); // FIXME: This has to wait for the functions above to finish.
+//   // fn1.apply(this, args_list);
+// }
 
 // Program start
 function main() {
