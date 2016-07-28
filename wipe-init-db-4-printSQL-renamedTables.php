@@ -1731,32 +1731,32 @@
 
   // Populate tables that do no need to be read from the workbook
   function populateTables() {
-    // populate_table_types_meta();
-    // populate_tables_meta();
-    // populate_table_fk_meta();
+    populate_table_types_meta();
+    populate_tables_meta();
+    populate_table_fk_meta();
 
-    // populate_ratings();
-    // populate_ratings_simple();
+    populate_ratings();
+    populate_ratings_simple();
 
-    // populate_partner_strengths();
-    // populate_technologies();
-    // populate_solutions();
-    // populate_misc();
+    populate_partner_strengths();
+    populate_technologies();
+    populate_solutions();
+    populate_misc();
 
-    // populate_verticals();
-    // populate_regions();
+    populate_verticals();
+    populate_regions();
 
-    // populate_opportunity_statuses();
-    // populate_consultant_skills();
+    populate_opportunity_statuses();
+    populate_consultant_skills();
   }
 
   // Main function
   function execute() {
     connect();
-    //createDatabase();
+    createDatabase();
     selectDatabase();
     initTableIds();
-    //createAllTables();
+    createAllTables();
     populateTables();
     disconnect();
   }
