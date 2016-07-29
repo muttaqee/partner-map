@@ -71,7 +71,7 @@ function RatingSet(name) {
     if (rating_pair instanceof RatingPair) {
       this.set.push(rating_pair);
     }
-  }
+  };
 }
 
 // Use to fill content
@@ -93,7 +93,7 @@ function Partner(id, name) {
     if (rating_set instanceof RatingSet) {
       this.ratings.push(rating_set);
     }
-  }
+  };
 
   this.addRatingPair = function(rating_set, rating_pair) {
     if (rating_pair instanceof RatingPair) {
@@ -103,7 +103,7 @@ function Partner(id, name) {
         this.ratings[rating_set].push(rating_pair);
       }
     }
-  }
+  };
 }
 
 // FIXME: Remove?
@@ -199,7 +199,7 @@ function orderTasks() {
   var task = function(callback) {
     tasks.shift()();
     callback();
-  }
+  };
   task(function() {
     if (tasks.length > 0) {
       executeTasks.apply(this, tasks);
@@ -263,7 +263,7 @@ function Table(id, name, label, type, is_searchable, rating_table, column_names)
     } else {
       alert("Error: Attempted to add columns to table " + this.name + ". Expected string array of column names but found " + (typeof str_array));
     }
-  }
+  };
 }
 
 function Lookup(id, type, name) {
@@ -276,13 +276,13 @@ function Lookup(id, type, name) {
 function LookupSet(table_id, label, values_set) {
   this.table_id = table_id;
   this.label = isNonempty(label) ? label : null;
-  this.set = (typeof values_set === "object") ? values_set : {}; // Stores lookup-id : lookup-obj pairs
+  this.set = (typeof values_set === "object") ? values_set : {}; // Stores pairs: lookup-id : lookup-obj
 
   this.addLookup = function(lookup) {
     if (lookup instanceof Lookup) {
       this.set[lookup.id] = lookup;
     }
-  }
+  };
 
   this.getLookupsArray = function() {
     var arr = [];
@@ -290,11 +290,11 @@ function LookupSet(table_id, label, values_set) {
       arr.push(this.set[key]);
     }
     return arr;
-  }
+  };
 
   this.getLookupById = function(id) {
     return (this.set.hasOwnProperty(id)) ? this.set[id] : null;
-  }
+  };
 }
 
 // Object: Represents a foreign key from one table column to another
@@ -310,7 +310,7 @@ function ForeignKey(table_id, reference_table_id, fk_column, relationship) {
   this.relationship_to_reference = relationship;
 }
 
-// FIXME: May move to View
+// FIXME: May move to View // NOTE: DELETE? REPLACED WITH PropertyFilter and PropertyRatingFilter
 function Filter(foreign_key, lookup_set) {
   this.foreign_key = foreign_key;
   this.label = this.foreign_key.relationship_to_reference;
@@ -320,15 +320,90 @@ function Filter(foreign_key, lookup_set) {
 
   this.setActive = function(lookup_id) {
     active.push(this.lookup_set.getLookupById(lookup_id));
-  }
+  };
 
   this.removeActive = function(lookup_id) {
     active.splice(active.indexOf(this.lookup_set.getLookupById(lookup_id)), 1);
-  }
+  };
 
   this.getActive = function() {
     return active.slice();
+  };
+}
+
+// Corresponds to a primary-property junction table
+// (A primary entity may be associated with 1 or more properties)
+function PropertyFilter(properties_lookup_set) {
+  var properties; // Object of key-vals: "id": LookupSet object
+  var selected_properties; // Object of key-vals: "id": LookupSet object
+
+  try {
+    properties = properties_lookup_set;
+    selected_properties = new LookupSet(this.properties.table_id, this.properties.label, {});
+  } catch (ex) {
+    var err_message = "Error: Failed to instantiate a property filter.";
+    console.log(err_message, ex.message);
+    alert(err_message + "\n" + ex.message);
   }
+
+  this.selectProperty = function(property_id) {
+    if (properties.hasOwnProperty(property_id)) {
+      selected_properties[property_id] = properties[property_id];
+    }
+  };
+
+  this.deselectProperty = function(property_id) {
+    if (selected_properties.hasOwnProperty(property_id)) {
+      delete selected_properties[property_id];
+    }
+  };
+
+  this.getSelected = function() {
+    return selected_properties;
+  };
+}
+
+// Corresponds to a primary-property-rating junction table
+// (A primary entity may be associated with 1 or more properties, and
+// each property may be associated with multiple ratings)
+function PropertyRatingFilter(properties_lookup_set, ratings_lookup_set) {
+  var properties; // Object of key-vals: "id": LookupSet object
+  var ratings; // Object of key-vals: "id": LookupSet object
+  var selected_property_ratings = {}; // Object of key-vals: "prop id": propertyRatingsPair object
+
+  // Returns objects to be added to selected_property_ratings
+  var createPropertyRatingPair = function(property_lookup, ratings_array) {
+    return {
+      "property": property_lookup, // Lookup object
+      "ratings": ratings_array // Array of Lookup objects
+    };
+  };
+
+  try {
+    properties = properties_lookup_set;
+    ratings = ratings_lookup_set;
+  } catch (ex) {
+    var err_message = "Error: Failed to instantiate a property rating filter.";
+    console.log(err_message, ex.message);
+    alert(err_message + "\n" + ex.message);
+  }
+
+  this.selectPropertyWithRatings = function(property_id, ratings_array) {
+    if (properties.hasOwnProperty(property_id)) {
+      var prop_rating_pair = createPropertyRatingPair(properties[property_id], ratings_array);
+      selected_property_ratings[property_id] = prop_rating_pair;
+    }
+  };
+
+  this.deselectProperty = function(property_id) {
+    if (selected_property_ratings.hasOwnProperty(property_id)) {
+      delete selected_property_ratings[property_id];
+    }
+  };
+
+  this.getSelected = function() {
+    return selected_property_ratings;
+  };
 }
 
 function Model(callback) {
@@ -367,11 +442,11 @@ function Model(callback) {
         table_types.push(rows[i]["name"]);
       }
 
-      if (typeof callback == "function") {
+      if (typeof callback === "function") {
         callback();
       }
     });
-  }
+  };
 
   var getTableColumns = function(table, callback) {
     var query_columns_str = "SELECT column_name FROM information_schema.columns WHERE table_schema = '"+dbname+"' AND table_name = '"+table.name+"';";
@@ -383,7 +458,7 @@ function Model(callback) {
       }
       callback(table, column_names);
     });
-  }
+  };
 
   var loadTables = function(callback) {
     // Give the object a key-value pair for each table type (i.e. <type>: [])
@@ -402,9 +477,8 @@ function Model(callback) {
         index += 1;
         if (index >= iterations) {
           callback();
-        } else {
         }
-      }
+      };
 
       // Build each table
       for (var i = 0; i < iterations; i += 1) {
@@ -425,7 +499,7 @@ function Model(callback) {
         });
       }
     });
-  }
+  };
 
   var buildLookupSetFromTable = function(lookup_table, callback) {
     var query_str = "SELECT * FROM " + lookup_table.name;
@@ -442,7 +516,7 @@ function Model(callback) {
       }
       callback(lookup_set);
     });
-  }
+  };
 
   var loadLookupSets = function(callback) {
     var iterations = tables["lookup"].length;
@@ -453,7 +527,7 @@ function Model(callback) {
       if (index >= iterations) {
         callback();
       }
-    }
+    };
 
     for (var i = 0; i < iterations; i += 1) {
       var t = tables["lookup"][i];
@@ -462,7 +536,7 @@ function Model(callback) {
         tryCallback();
       });
     }
-  }
+  };
 
   var loadForeignKeys = function(callback) {
     // Load and store foreign keys as ForeignKey objects
@@ -480,7 +554,7 @@ function Model(callback) {
         callback();
       }
     });
-  }
+  };
 
   // Load all filters for a given table
   var loadEntityFilters = function(table_id, callback) {
@@ -495,7 +569,7 @@ function Model(callback) {
       if (foreign_keys.hasOwnProperty(table_id)) {
         var arr = foreign_keys[table_id];
         for (var i = 0; i < arr.length; i += 1) {
-          if (arr[i].fk_column == "rating_id") {
+          if (arr[i].fk_column === "rating_id") {
             var filt = new Filter(arr[i], lookup_sets[arr[i].reference_table_id]);
             filters[table_id].push(filt);
           }
@@ -506,7 +580,7 @@ function Model(callback) {
         var arr = foreign_keys[key];
         for (var i = 0; i < arr.length; i += 1) {
           // Store filters (primary-lookup junction tables)
-          if ((arr[i].reference_table_id == table_id) && (this.getTableById(arr[i].table_id).type == "primary_lookup_junction")) {
+          if ((arr[i].reference_table_id === table_id) && (this.getTableById(arr[i].table_id).type === "primary_lookup_junction")) {
             var filt = new Filter(arr[i], lookup_sets[arr]);
           }
           // Store filters (ratings junction tables)
@@ -520,7 +594,7 @@ function Model(callback) {
 
     // Execute callback
     callback();
-  }
+  };
 
   // Load filters for all tables
   var loadFilters = function(callback) {
@@ -542,23 +616,23 @@ function Model(callback) {
     executeTasks(function(callback) {
       callback();
     });
-  }
+  };
 
   var getLinkedTableIds = function(table, callback) {
-    alert("in getLinkedTableIds. is table: " + JSON.stringify(table)); // FIXME: Remove
+    // alert("in getLinkedTableIds. is table: " + JSON.stringify(table)); // FIXME: Remove
     // Submit query: get all ids of tables junctioned to this one
     var table_id = table.id;
-    var query_str = "SELECT DISTINCT table_id FROM table_fk_meta WHERE reference_table_id <> " + table_id + " AND table_id IN (SELECT table_id FROM table_fk_meta WHERE reference_table_id = " + table_id + ");";
+    var query_str = "SELECT DISTINCT reference_table_id FROM table_fk_meta WHERE reference_table_id <> " + table_id + " AND table_id IN (SELECT table_id FROM table_fk_meta WHERE reference_table_id = " + table_id + ");";
     query(query_str, function(data) {
       var rows = JSON.parse(data);
-      alert("Inside getLinkedTableIds query callback. Rows: " + JSON.stringify(rows)); // FIXME: Remove
+      // alert("Inside getLinkedTableIds query callback for table "+table.name+". Rows: " + JSON.stringify(rows, null, 4)); // FIXME: Remove
       for (var i = 0; i < rows.length; i += 1) {
         // Check junction type (one of three types)
         var junctioned_table = lookup_sets["1"];
-        alert(lookup_sets.hasOwnProperty(rows[i]["table_id"]) + "; " + rows[i]["table_id"] + " Junctioned_table: " + JSON.stringify(junctioned_table));
+        // alert(lookup_sets.hasOwnProperty(rows[i]["table_id"]) + "; " + rows[i]["table_id"] + " Junctioned_table: " + JSON.stringify(junctioned_table));
         // alert("Table junctioned to lookup set " + table.name + " / " + table.label + ":\n" + JSON.parse(junctioned_table));
       }
-      callback(rows);
+      callback(table, rows);
     });
     // Check junction type.
     // If primary-lookup, create CHECKBOX filters
@@ -570,7 +644,7 @@ function Model(callback) {
     // if (typeof callback === "function") {
     //   callback();
     // }
-  }
+  };
 
   var loadFilters = function(callback) {
     var iterations = tables["primary"].length;
@@ -581,12 +655,14 @@ function Model(callback) {
       if (index >= iterations) {
         callback();
       }
-    }
+    };
 
     var primary_tables = tables["primary"];
+    alert("Primary tables: " + JSON.stringify(primary_tables)); // FIXME: Remove
     for (var i = 0; i < primary_tables.length; i += 1) {
       var table = primary_tables[i];
-      getLinkedTableIds(table, function(data) {
+      getLinkedTableIds(table, function(table, data) {
+        alert(table.name + " is linked to\n" + JSON.stringify(data, null, 4)); // FIXME: Remove
         tryCallback();
       });
       // getLinkedTableIds(table, function (data) {
@@ -602,13 +678,13 @@ function Model(callback) {
       //   }
       // });
     }
-  }
+  };
 
   this.setDatabaseName = function(str) {
     if (typeof str === "string") {
       dbname = str;
     }
-  }
+  };
 
   /* Table types */
 
@@ -617,7 +693,7 @@ function Model(callback) {
       table_types.push(str);
       tables[str] = [];
     }
-  }
+  };
 
   this.removeTableType = function(str) {
     if (typeof str === "string" && table_types.hasOwnProperty(str)) {
@@ -635,36 +711,36 @@ function Model(callback) {
       // Remove type key from tables object
       delete tables[str];
     }
-  }
+  };
 
   this.getTableTypes = function() {
     return table_types.slice();
-  }
+  };
 
   /* Tables */
 
   this.addTable = function(t) {
     if (t instanceof Table) {
       for (var key in tables) {
-        if (t.type == key) {
+        if (t.type === key) {
           tables[key].push(t);
           return;
         }
       }
       tables["other"].push(t);
     }
-  }
+  };
 
   // FIXME: implement
   this.removeTable = function(table_id) {
 
-  }
+  };
 
   this.getTablesByType = function(type_str) {
     if (typeof type_str === "string") {
-      return tables[table_str] ? tables[type_str].slice() : [];
+      return tables[type_str] ? tables[type_str].slice() : [];
     }
-  }
+  };
 
   this.getAllTables = function() {
     var all_tables = [];
@@ -672,49 +748,49 @@ function Model(callback) {
       all_tables.push.apply(all_tables, tables[key]);
     }
     return all_tables;
-  }
+  };
 
   this.getTableById = function(id) {
     var tables = this.getAllTables();
     for (var i = 0; i < tables.length; i += 1) {
-      if (tables[i].id == id) {
+      if (tables[i].id === id) {
         return tables[i];
       }
     }
     return null;
-  }
+  };
 
   /* Lookups and lookup sets */
 
   // FIXME: implement
   this.addLookup = function(lookup, table_id) {
 
-  }
+  };
 
   // FIXME: implement
   this.removeLookup = function(lookup_id, table_id) {
 
-  }
+  };
 
   // FIXME: implement
   this.addLookupSet = function(lookup_set, table_id) {
 
-  }
+  };
 
   // FIXME: implement
   this.removeLookupSet = function(table_id) {
 
-  }
+  };
 
   // FIXME: implement
   this.getLookupSets = function() {
     // Return sliced array
-  }
+  };
 
   // FIXME: implement
   this.getLookupSetById = function(table_id) {
 
-  }
+  };
 
   /* Foreign keys */
 
@@ -725,12 +801,12 @@ function Model(callback) {
       }
       foreign_keys[fkey.table_id].push(fkey);
     }
-  }
+  };
 
   // FIXME: implement
   this.removeForeignKey = function(fkey_id, table_id) {
 
-  }
+  };
 
   // FIXME: implement
   this.getForeignKeys = function() {
@@ -739,35 +815,35 @@ function Model(callback) {
       arr.push(foreign_keys[key]);
     }
     return arr;
-  }
+  };
 
   // FIXME: implement
   this.getForeignKeyById = function() {
 
-  }
+  };
 
   /* Modification functions */
 
   this.addEntity = function() {
     // FIXME: INSERT PARTNER IF DOES NOT EXIST
-  }
+  };
 
   this.editEntity = function(id, column, value) {
     // FIXME: ALTER PARTNER IF EXISTS
-  }
+  };
 
   this.removeEntity = function(id) {
     // FIXME: DELETE PARTNER IF EXISTS
-  }
+  };
 
   this.addTableColumn = function(table, column) {
     // FIXME: [LATER] ALTER TABLE IF EXISTS
-  }
+  };
 
   this.selectEntities = function() {
     // FIXME:
     var query_str = "SELECT * FROM ";
-  }
+  };
 
   // Initialize variables
   var initialize = function() {
@@ -791,7 +867,7 @@ function Model(callback) {
     //loadTables();
     alert("End initialize"); // FIXME: Remove
     //loadLookupSets();
-  }
+  };
 
   initialize();
   callback(null);
