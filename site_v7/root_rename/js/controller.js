@@ -406,6 +406,14 @@ function PropertyRatingFilter(properties_lookup_set, ratings_lookup_set) {
   };
 }
 
+function AssociationFilter() {
+  // FIXME: Implement
+}
+
+function IndirectAssociationFilter() {
+  // FIXME: Implement
+}
+
 function Model(callback) {
   // Context
   var self = this;
@@ -424,7 +432,8 @@ function Model(callback) {
   // Lookup sets: {table_id: lookupSet, table_id: lookupSet, ...}
   var lookup_sets = {};
 
-  // Foreign keys: {"table id 1": [Fkey1, FKey2, ...], "table id 2": [...], ...}
+  // Foreign keys:
+  // {"table_id_1": {ref_id: fk, ref_id: fk, ...}, "table_id_2": [...], ...}
   var foreign_keys = {};
 
   // Filters (FIXME: May move part of this to view?)
@@ -557,93 +566,80 @@ function Model(callback) {
   };
 
   // Load all filters for a given table
-  var loadEntityFilters = function(table_id, callback) {
-    var table = this.getTableById(table_id);
-    if (table) {
-      var t = this.getTableById(table_id);
-      // Initialize if empty
-      if (!filters.hasOwnProperty(table_id)) {
-        filters[table_id] = { own: [], junction: [] };
-      }
-      // Store filters (own ratings columns)
-      if (foreign_keys.hasOwnProperty(table_id)) {
-        var arr = foreign_keys[table_id];
-        for (var i = 0; i < arr.length; i += 1) {
-          if (arr[i].fk_column === "rating_id") {
-            var filt = new Filter(arr[i], lookup_sets[arr[i].reference_table_id]);
-            filters[table_id].push(filt);
-          }
-        }
-      }
-
-      for (var key in foreign_keys) {
-        var arr = foreign_keys[key];
-        for (var i = 0; i < arr.length; i += 1) {
-          // Store filters (primary-lookup junction tables)
-          if ((arr[i].reference_table_id === table_id) && (this.getTableById(arr[i].table_id).type === "primary_lookup_junction")) {
-            var filt = new Filter(arr[i], lookup_sets[arr]);
-          }
-          // Store filters (ratings junction tables)
-          // Store filters (primary-junction tables)
-          // Store filters (primary-primary junction tables)
-        }
-      }
-    } else {
-      alert("Error: Could not load filters for table with id " + table_id + ". Table not found.");
-    }
-
-    // Execute callback
-    callback();
-  };
+  // FIXME: COmmenting out; this isn't used - remove
+  // var loadEntityFilters = function(table_id, callback) {
+  //   var table = this.getTableById(table_id);
+  //   if (table) {
+  //     var t = this.getTableById(table_id);
+  //     // Initialize if empty
+  //     if (!filters.hasOwnProperty(table_id)) {
+  //       filters[table_id] = { own: [], junction: [] };
+  //     }
+  //     // Store filters (own ratings columns)
+  //     if (foreign_keys.hasOwnProperty(table_id)) {
+  //       var arr = foreign_keys[table_id];
+  //       for (var i = 0; i < arr.length; i += 1) {
+  //         if (arr[i].fk_column === "rating_id") {
+  //           var filt = new Filter(arr[i], lookup_sets[arr[i].reference_table_id]);
+  //           filters[table_id].push(filt);
+  //         }
+  //       }
+  //     }
+  //
+  //     for (var key in foreign_keys) {
+  //       var arr = foreign_keys[key];
+  //       for (var i = 0; i < arr.length; i += 1) {
+  //         // Store filters (primary-lookup junction tables)
+  //         if ((arr[i].reference_table_id === table_id) && (this.getTableById(arr[i].table_id).type === "primary_lookup_junction")) {
+  //           var filt = new Filter(arr[i], lookup_sets[arr]);
+  //         }
+  //         // Store filters (ratings junction tables)
+  //         // Store filters (primary-junction tables)
+  //         // Store filters (primary-primary junction tables)
+  //       }
+  //     }
+  //   } else {
+  //     alert("Error: Could not load filters for table with id " + table_id + ". Table not found.");
+  //   }
+  //
+  //   // Execute callback
+  //   callback();
+  // };
 
   // Load filters for all tables
-  var loadFilters = function(callback) {
-    // Get all primary tables
-    var primary_tables = tables["primary"];
-    // Get all junctioned tables
-    for (var table_id in foreign_keys) {
-      for (var i = 0; i < foreign_keys[table_id].length; i += 1) {
-        if (foreign_keys[table_id][i]) {
+  // FIXME: New version written - remove
+  // var loadFilters = function(callback) {
+  //   // Get all primary tables
+  //   var primary_tables = tables["primary"];
+  //   // Get all junctioned tables
+  //   for (var table_id in foreign_keys) {
+  //     for (var i = 0; i < foreign_keys[table_id].length; i += 1) {
+  //       if (foreign_keys[table_id][i]) {
+  //
+  //       }
+  //     }
+  //   }
+  //   //var getfkeys
+  //
+  //   // Get all primary columns
+  //   // Get all junction columns
+  //   // Execute callback
+  //   executeTasks(function(callback) {
+  //     callback();
+  //   });
+  // };
 
-        }
-      }
-    }
-    //var getfkeys
-
-    // Get all primary columns
-    // Get all junction columns
-    // Execute callback
-    executeTasks(function(callback) {
-      callback();
-    });
-  };
-
+  // Get all ids of tables junctioned to this one
   var getLinkedTableIds = function(table, callback) {
-    // alert("in getLinkedTableIds. is table: " + JSON.stringify(table)); // FIXME: Remove
-    // Submit query: get all ids of tables junctioned to this one
     var table_id = table.id;
-    var query_str = "SELECT DISTINCT reference_table_id FROM table_fk_meta WHERE reference_table_id <> " + table_id + " AND table_id IN (SELECT table_id FROM table_fk_meta WHERE reference_table_id = " + table_id + ");";
+    var query_str = "SELECT DISTINCT table_id FROM table_fk_meta WHERE reference_table_id = " + table.id + ";";
     query(query_str, function(data) {
       var rows = JSON.parse(data);
-      // alert("Inside getLinkedTableIds query callback for table "+table.name+". Rows: " + JSON.stringify(rows, null, 4)); // FIXME: Remove
       for (var i = 0; i < rows.length; i += 1) {
-        // Check junction type (one of three types)
         var junctioned_table = lookup_sets["1"];
-        // alert(lookup_sets.hasOwnProperty(rows[i]["table_id"]) + "; " + rows[i]["table_id"] + " Junctioned_table: " + JSON.stringify(junctioned_table));
-        // alert("Table junctioned to lookup set " + table.name + " / " + table.label + ":\n" + JSON.parse(junctioned_table));
       }
       callback(table, rows);
     });
-    // Check junction type.
-    // If primary-lookup, create CHECKBOX filters
-
-    // If primary-lookup-rating, create DROPDOWN filters
-
-    // If primary-primary, create SEARCH-DROPDOWN of
-
-    // if (typeof callback === "function") {
-    //   callback();
-    // }
   };
 
   var loadFilters = function(callback) {
@@ -658,11 +654,56 @@ function Model(callback) {
     };
 
     var primary_tables = tables["primary"];
-    alert("Primary tables: " + JSON.stringify(primary_tables)); // FIXME: Remove
+    // For each primary table, load filters according to adjacent junction tables
     for (var i = 0; i < primary_tables.length; i += 1) {
-      var table = primary_tables[i];
-      getLinkedTableIds(table, function(table, data) {
-        alert(table.name + " is linked to\n" + JSON.stringify(data, null, 4)); // FIXME: Remove
+      var primary_table = primary_tables[i];
+      filters[primary_table.id] = {}; // Reserve spot for this table's filters
+      getLinkedTableIds(primary_table, function(primary_table, data) {
+        alert(primary_table.name + "\nis linked to\n" + JSON.stringify(data, null, 4)); // FIXME: Remove
+        // Check table/junction type.
+        // primary, create name-match filter
+        // If primary-lookup, create CHECKBOX/ filters
+        // If primary-lookup-rating, create DROPDOWN filters
+        // If primary-primary, create SEARCH-DROPDOWN of
+
+        // For each junction pointing to this primary table, create a filter and store it
+        for (var i = 0; i < data.length; i += 1) {
+          var junction_id = data[i]["table_id"];
+          var junction_table = this.getTableById(junction_id);
+          var fkeys = foreign_keys[junction_id];
+
+          var filter;
+          if (junction_table.type === "primary_lookup_junction") {
+            // Instantiate a property filter
+            var property_table_id = fkeys[]
+            var properties_lookup_set = lookup_sets[]
+            filter = new PropertyFilter(properties_lookup_set);
+          } else if (junction_table.type === "ratings") {
+            // instantiate a property rating filter
+            var properties_lookup_set = lookup_sets[]
+            var ratings_lookup_set = lookup_sets[]
+            filter = new PropertyRatingFilter(properties_lookup_set, ratings_lookup_set);
+          } else if (junction_table.type === "primary_primary_junction") {
+            // instantiate an association filter
+          } else if (junction_table.type === "primary_junction_junction") {
+            // instantiate an indirect association filter
+          } else if {junction_table.type === "primary") {
+            // instantiate an association filter (different from previous?)
+          } else {
+            // Create no filter
+          }
+          // Store filter
+        }
+        // switch (table.type) {
+        //   case "primary_lookup_junction":
+        //
+        //     break;
+        //   case: "ratings":
+        //
+        //     break;
+        //   default:
+        //   break;
+        // }
         tryCallback();
       });
       // getLinkedTableIds(table, function (data) {
@@ -797,9 +838,9 @@ function Model(callback) {
   this.addForeignKey = function(fkey) {
     if (fkey instanceof ForeignKey) {
       if (!foreign_keys[fkey.table_id]) {
-        foreign_keys[fkey.table_id] = [];
+        foreign_keys[fkey.table_id] = {};
       }
-      foreign_keys[fkey.table_id].push(fkey);
+      foreign_keys[fkey.table_id][fkey.reference_table_id] = fkey;
     }
   };
 
@@ -811,8 +852,10 @@ function Model(callback) {
   // FIXME: implement
   this.getForeignKeys = function() {
     var arr = [];
-    for (var key in foreign_keys) {
-      arr.push(foreign_keys[key]);
+    for (var table_id in foreign_keys) {
+      for (var reference_table_id in foreign_keys[table_id]) {
+        arr.push(foreign_keys[table_id][reference_table_id]);
+      }
     }
     return arr;
   };
@@ -855,11 +898,7 @@ function Model(callback) {
       loadForeignKeys,
       loadFilters,
       function(callback) {
-        var count = 0;
-        for (var key in foreign_keys) {
-          count += foreign_keys[key].length;
-        }
-        alert("Final task - show tables:\n" + " ("+ count +") " + JSON.stringify(foreign_keys, null, 4));
+        alert("Final task - show fkeys:\n" + JSON.stringify(foreign_keys, null, 4));
         callback();
         alert("Post callback"); // FIXME: Last
       });
