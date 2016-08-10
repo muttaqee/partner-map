@@ -38,7 +38,7 @@
   }
 
   // Connection variables
-  $config = include('config\config.php');
+  $config = include('config/config.php');
   $db_host = $config["host"];
   $db_user = $config["username"];
   $db_pass = $config["password"];
@@ -47,6 +47,8 @@
   //$scripts_path = "C:\\xampp\htdocs\muttaqee-projects\\partner-map\\";
   // $scripts_path = "C:\\xampp\htdocs\sas_app\\";
   $scripts_path = "";
+  // $prog = "C:\Python34\python"; // Windows workstation
+  $prog = "/Library/Frameworks/Python.framework/Versions/3.4/bin/python3.4"; // Mac workstation
 
   // Connect to MySQL server
   function connect() {
@@ -133,7 +135,7 @@
     $columns = array("primary_id", "lookup_id", "rating_id");
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
-    $prog = "C:\Python34\python";
+    global $prog;
     $script = $scripts_path . "read-partner-strength-ratings.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
@@ -184,7 +186,7 @@
     $columns = array("primary_id", "lookup_id", "rating_id");
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
-    $prog = "C:\Python34\python";
+    global $prog;
     $script = $scripts_path . "read-partner-technology-ratings.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
@@ -238,7 +240,7 @@
     $columns = array("primary_id", "lookup_id", "rating_id");
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
-    $prog = "C:\Python34\python";
+    global $prog;
     $script = $scripts_path . "read-partner-solution-ratings.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
@@ -292,7 +294,7 @@
     $columns = array("primary_id", "lookup_id", "rating_id");
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
-    $prog = "C:\Python34\python";
+    global $prog;
     $script = $scripts_path . "read-partner-misc-ratings.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
@@ -344,7 +346,7 @@
     $columns = array("primary_id", "lookup_id");
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
-    $prog = "C:\Python34\python";
+    global $prog;
     $script = $scripts_path . "read-partner-vertical-junction.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
@@ -387,7 +389,7 @@
     $columns = array("primary_id", "lookup_id");
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
-    $prog = "C:\Python34\python";
+    global $prog;
     $script = $scripts_path . "read-partner-region-junction.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
@@ -433,7 +435,7 @@
     $columns = array("last_name", "rating_id", "is_rejected");
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
-    $prog = "C:\Python34\python";
+    global $prog;
     $script = $scripts_path . "read-consultants.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
@@ -507,7 +509,7 @@
     $columns = array("primary_id", "lookup_id", "rating_id");
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
-    $prog = "C:\Python34\python";
+    global $prog;
     $script = $scripts_path . "read-consultant-ratings.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
@@ -572,7 +574,7 @@
     $columns = array("consultant_id", "partner_id");
 
     // Execute and retrieve JSON rows from Python script (store into $rows)
-    $prog = "C:\Python34\python";
+    global $prog;
     $script = $scripts_path . "read-consultant-partner-junction.py";
     $cmd = $prog . " " . $script;
     $rows = json_decode(shell_exec($cmd), true);
@@ -623,7 +625,7 @@
   // Populate table: partners
   function populate_partners() {
     // Execute and retrieve JSON rows from Python script (store into $rows)
-    $prog = "C:\Python34\python";
+    global $prog;
     $script = "read-partners-pass1.py";
     $cmd = $prog . " " . $script;
     $result = json_decode(shell_exec($cmd), true);

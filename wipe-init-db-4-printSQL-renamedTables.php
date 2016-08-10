@@ -60,7 +60,7 @@
   }
 
   // Connection variables
-  $config = include('config\config.php');
+  $config = include('config/config.php');
   $db_host = $config["host"];
   $db_user = $config["username"];
   $db_pass = $config["password"];

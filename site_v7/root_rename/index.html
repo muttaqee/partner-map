@@ -2,11 +2,427 @@
 <html>
 <head>
   <title>App</title>
-  <link rel="stylesheet" type="text/css" href="css/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1"> <!--FIXME: For bootstrap-->
+  <!-- Include Bootstrap -->
+  <link rel="stylesheet" href="css/jquery-ui.min.css">
+  <!-- <link rel="stylesheet" href="css/jquery-ui.theme.min.css"> -->
+  <!-- <link rel="stylesheet" type="text/css" href="css/viewstyle.css"> -->
   <script src="js/jquery-3.0.0.min.js"></script>
-  <script src="js/controller.js"></script>
+  <script src="js/jquery-ui.min.js"></script>
+  <script src="js/controller_ui.js"></script>
+
 </head>
 <body>
-  <p>Loading...</p>
+
+  <div class="container top">
+    <div class="left">
+    </div><div class="panel center">
+      <img src="images/sas-logo-white.png">
+      <h1>Third-Party Resources</h1>
+    </div><div class="right">
+    </div>
+  </div><div class="container large">
+    <div class="container left">
+
+  </div><div class="container main">
+
+    <div class="tabs">
+      <ul>
+        <li><a href="#find"><span class="ui-icon ui-icon-search"></span> Find resources</a></li>
+        <li><a href="#add"><span class="ui-icon ui-icon-plus"></span> Add resource</a></li>
+        <li><a href="#admin"><span class="ui-icon ui-icon-gear"></span> Admin tools</a></li>
+      </ul>
+
+      <div class="container" id="find">
+
+          <!-- Accordion panel (search filters for partners, consultants, etc) -->
+
+          <div class="accordion narrow">
+
+            <!-- SAS Partner filters -->
+
+            <h3>SAS Partners</h3>
+            <div class="filter" id="partners">
+              <form>
+                <!-- Filters here: name search, properties, property ratings, associations -->
+                <!-- <label for="partner-name">Search by name <span class="ui-icon ui-icon-search"></span></label> -->
+                <div>
+                  <input type="text" name="partner-name" placeholder="Partner name">
+                    <div class="button" id="partner-name-button"><span class="ui-icon ui-icon-search"></span></div>
+                  </input>
+                </div>
+
+                <fieldset>
+                  <legend>Industry</legend>
+                  <input type="checkbox" name="partner-industry" id="partner-industry-Any" value="Any" checked><label for="partner-industry-Any">Any</label>
+                </fieldset>
+
+                <fieldset>
+                  <legend>Region</legend>
+                  <input type="checkbox" name="partner-region" id="partner-region-Any" value="Any" checked><label for="partner-region-Any">Any</label>
+                </fieldset>
+
+                <fieldset>
+                  <div>
+                    <input type="checkbox" name="is_partner_plus" id="is_partner_plus" value="is_partner_plus" checked><label for="is_partner_plus">Partner Plus</label>
+                  </div>
+                </fieldset>
+
+                <fieldset>
+                  <legend>Strengths</legend>
+                  <!-- <label for="strength-rating-filter" class="property-dropdown-label">Strength:</label> -->
+                  <select name="strengths-filter" class="property-filter" id="strength-rating-filter">
+                    <option class="property" id="Any">Any</option>
+                  </select>
+                  <!-- <label class="rating-dropdown-label">Rating:</label> -->
+                  <table>
+                    <tr>
+                      <td>Rating:</td>
+                      <td><input type="checkbox" name="strengths-filter" id="strengths-Any" value="Any" checked><label for="strengths-Any">Any</label></td>
+                      <td><input type="checkbox" name="strengths-filter" id="strengths-A" value="A" checked><label for="strengths-A">A</label></td>
+                      <td><input type="checkbox" name="strengths-filter" id="strengths-B" value="B" checked><label for="strengths-B">B</label></td>
+                      <td><input type="checkbox" name="strengths-filter" id="strengths-C" value="C" checked><label for="strengths-C">C</label></td>
+                      <td><input type="checkbox" name="strengths-filter" id="strengths-D" value="D" checked><label for="strengths-D">D</label></td>
+                      <td><input type="checkbox" name="strengths-filter" id="strengths-F" value="F" checked><label for="strengths-F">F</label></td>
+                    </tr>
+                  </table>
+                  <div class="button filter-button" id="solutions-filter-button"><span class="ui-icon ui-icon-plus"></span>Add filter</div>
+                </fieldset>
+
+                <fieldset>
+                  <legend>Technologies</legend>
+                  <!-- <label for="technology-rating-filter" class="property-dropdown-label">Technology:</label> -->
+                  <select name="technologies-filter" class="property-filter" id="technology-rating-filter">
+                    <option class="property" id="Any">Any</option>
+                  </select>
+                  <!-- <label class="rating-dropdown-label">Rating:</label> -->
+                  <table>
+                    <tr>
+                      <td>Rating:</td>
+                      <td><input type="checkbox" name="technologies-filter" id="technologies-Any" value="Any" checked><label for="technologies-Any">Any</label></td>
+                      <td><input type="checkbox" name="technologies-filter" id="technologies-A" value="A" checked><label for="technologies-A">A</label></td>
+                      <td><input type="checkbox" name="technologies-filter" id="technologies-B" value="B" checked><label for="technologies-B">B</label></td>
+                      <td><input type="checkbox" name="technologies-filter" id="technologies-C" value="C" checked><label for="technologies-C">C</label></td>
+                      <td><input type="checkbox" name="technologies-filter" id="technologies-D" value="D" checked><label for="technologies-D">D</label></td>
+                      <td><input type="checkbox" name="technologies-filter" id="technologies-F" value="F" checked><label for="technologies-F">F</label></td>
+                    </tr>
+                  </table>
+                  <div class="button filter-button" id="technologies-filter-button"><span class="ui-icon ui-icon-plus"></span>Add filter</div>
+                </fieldset>
+
+                <fieldset>
+                  <legend>Solutions</legend>
+                  <!-- <label for="solution-rating-filter" class="property-dropdown-label">Solution:</label> -->
+                  <select name="solutions-filter" class="property-filter" id="solution-rating-filter">
+                    <option class="property" id="Any">Any</option>
+                  </select>
+                  <!-- <label class="rating-dropdown-label">Rating:</label> -->
+                  <table>
+                    <tr>
+                      <td>Rating:</td>
+                      <td><input type="checkbox" name="solutions-filter" id="solutions-Any" value="Any" checked><label for="solutions-Any">Any</label></td>
+                      <td><input type="checkbox" name="solutions-filter" id="solutions-A" value="A" checked><label for="solutions-A">A</label></td>
+                      <td><input type="checkbox" name="solutions-filter" id="solutions-B" value="B" checked><label for="solutions-B">B</label></td>
+                      <td><input type="checkbox" name="solutions-filter" id="solutions-C" value="C" checked><label for="solutions-C">C</label></td>
+                      <td><input type="checkbox" name="solutions-filter" id="solutions-D" value="D" checked><label for="solutions-D">D</label></td>
+                      <td><input type="checkbox" name="solutions-filter" id="solutions-F" value="F" checked><label for="solutions-F">F</label></td>
+                    </tr>
+                  </table>
+                  <div class="button filter-button" id="solutions-filter-button"><span class="ui-icon ui-icon-plus"></span>Add filter</div>
+                </fieldset>
+
+                <fieldset>
+                  <legend>ADM / INSTALL / BASE / MIG</legend>
+                  <!-- <label for="solutions" class="property-dropdown-label">Solution:</label> -->
+                  <select name="adm-install-base-mig-filter" class="property-filter" id="solutions">
+                    <option class="property" id="Any">Any</option>
+                  </select>
+                  <!-- <label class="rating-dropdown-label">Rating:</label> -->
+                  <table>
+                    <tr>
+                      <td>Rating:</td>
+                      <td><input type="checkbox" name="adm-install-base-mig-filter" id="adm-install-base-mig-Any" value="Any" checked><label for="adm-install-base-mig-Any">Any</label></td>
+                      <td><input type="checkbox" name="adm-install-base-mig-filter" id="adm-install-base-mig-A" value="A" checked><label for="adm-install-base-mig-A">A</label></td>
+                      <td><input type="checkbox" name="adm-install-base-mig-filter" id="adm-install-base-mig-B" value="B" checked><label for="adm-install-base-mig-B">B</label></td>
+                      <td><input type="checkbox" name="adm-install-base-mig-filter" id="adm-install-base-mig-C" value="C" checked><label for="adm-install-base-mig-C">C</label></td>
+                      <td><input type="checkbox" name="adm-install-base-mig-filter" id="adm-install-base-mig-D" value="D" checked><label for="adm-install-base-mig-D">D</label></td>
+                      <td><input type="checkbox" name="adm-install-base-mig-filter" id="adm-install-base-mig-F" value="F" checked><label for="adm-install-base-mig-F">F</label></td>
+                    </tr>
+                  </table>
+                  <div class="button filter-button" id="solutions-filter-button"><span class="ui-icon ui-icon-plus"></span>Add filter</div>
+                </fieldset>
+
+                <fieldset>
+                  <legend>Associated consultants</legend>
+                  <input type="text" name="consultant-name" id="partner-assoc-consultant-name-text" placeholder="Consultant name">
+                    <div class="button" id="partner-assoc-consultant-name-button"><span class="ui-icon ui-icon-search"></span></div>
+                  </input>
+                </fieldset>
+
+                <fieldset>
+                  <legend>Associated opportunities</legend>
+                  <input type="text" name="opp-cust-name" id="partner-assoc-opp-name-text" placeholder="Opportunity or customer name">
+                    <div class="button" id="partner-assoc-opp-name-button"><span class="ui-icon ui-icon-search"></span></div>
+                  </input>
+                </fieldset>
+
+              </form>
+            </div>
+
+            <!-- Consultant filters -->
+
+            <h3>Consultants</h3>
+            <div class="filter" id="consultants">
+              <form>
+                <!-- Filters here: name search, properties, property ratings, associations -->
+                <!-- <label for="consultant-name">Search by name <span class="ui-icon ui-icon-search"></span></label> -->
+                <div>
+                  <input type="text" name="consultant-name" id="consultant-name-text" placeholder="Consultant name">
+                    <div class="button" id="consultant-name-button"><span class="ui-icon ui-icon-search"></span></div>
+                  </input>
+                </div>
+
+                <fieldset>
+                  <legend>Overall rating</legend>
+                  <div class="rating-slider" id="consultant-overall-rating-slider"></div>
+                  <label id="consultant-rating-label"><span id="cons-rating-from">F</span> to <span id="cons-rating-to">A+</span></label>
+                </fieldset>
+
+                <fieldset>
+                  <legend>Overall rating</legend>
+                  <input type="range" id="consultant-overall-rating-range" name="consultant-overall-ratings" step="1" min="0" max="12" value="0">
+                  <label id="consultant-overall-rating-label"/>
+                </fieldset>
+
+                <fieldset>
+                  <legend>Overall rating</legend>
+                  <!-- <label class="rating-dropdown-label">Rating:</label> -->
+
+                  <!-- <input type="checkbox" name="Any" id="Any" value="Any" checked><label for="Any">Any</label>
+                  <br>
+
+                  <input type="checkbox" name="A+" id="A+" value="A+" checked><label for="A+">A+</label>
+                  <input type="checkbox" name="B+" id="B+" value="B+" checked><label for="B+">B+</label>
+                  <input type="checkbox" name="C+" id="C+" value="C+" checked><label for="C+">C+</label>
+                  <input type="checkbox" name="D+" id="D+" value="D+" checked><label for="D+">D+</label>
+                  <br>
+
+                  <input type="checkbox" name="A" id="A" value="A" checked><label for="A">A</label>
+                  <input type="checkbox" name="B" id="B" value="B" checked><label for="B">B</label>
+                  <input type="checkbox" name="C" id="C" value="C" checked><label for="C">C</label>
+                  <input type="checkbox" name="D" id="D" value="D" checked><label for="D">D</label>
+                  <br>
+
+                  <input type="checkbox" name="A-" id="A-" value="A-" checked><label for="A-">A-</label>
+                  <input type="checkbox" name="B-" id="B-" value="B-" checked><label for="B-">B-</label>
+                  <input type="checkbox" name="C-" id="C-" value="C-" checked><label for="C-">C-</label>
+                  <input type="checkbox" name="D-" id="D-" value="D-" checked><label for="D-">D-</label>
+                  <br>
+
+                  <input type="checkbox" name="F" id="F" value="F" checked><label for="F">F</label> -->
+
+                  <table id="consultant-overall-ratings">
+                    <tr>
+                      <td><input type="checkbox" name="overall-rating" id="overall-rating-Any" value="Any" checked><label for="overall-rating-Any">Any</label></td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" name="overall-rating" id="overall-rating-A+" value="A+" checked><label for="overall-rating-A+">A+</label></td>
+                      <td><input type="checkbox" name="overall-rating" id="overall-rating-A" value="A" checked><label for="overall-rating-A">A</label></td>
+                      <td><input type="checkbox" name="overall-rating" id="overall-rating-A-" value="A-" checked><label for="overall-rating-A-">A-</label></td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" name="overall-rating" id="overall-rating-B+" value="B+" checked><label for="overall-rating-B+">B+</label></td>
+                      <td><input type="checkbox" name="overall-rating" id="overall-rating-B" value="B" checked><label for="overall-rating-B">B</label></td>
+                      <td><input type="checkbox" name="overall-rating" id="overall-rating-B-" value="B-" checked><label for="overall-rating-B-">B-</label></td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" name="overall-rating" id="overall-rating-C+" value="C+" checked><label for="overall-rating-C+">C+</label></td>
+                      <td><input type="checkbox" name="overall-rating" id="overall-rating-C" value="C" checked><label for="overall-rating-C">C</label></td>
+                      <td><input type="checkbox" name="overall-rating" id="overall-rating-C-" value="C-" checked><label for="overall-rating-C-">C-</label></td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" name="overall-rating" id="overall-rating-D+" value="D+" checked><label for="overall-rating-D+">D+</label></td>
+                      <td><input type="checkbox" name="overall-rating" id="overall-rating-D" value="D" checked><label for="overall-rating-D">D</label></td>
+                      <td><input type="checkbox" name="overall-rating" id="overall-rating-D-" value="D-" checked><label for="overall-rating-D-">D-</label></td>
+                    </tr>
+                    <tr>
+                      <td><input type="checkbox" name="overall-rating" id="overall-rating-F" value="F" checked><label for="overall-rating-F">F</label></td>
+                    </tr>
+                  </table>
+
+                  <div class="button filter-button" id="consultant-filter-button"><span class="ui-icon ui-icon-plus"></span>Add filter</div>
+                </fieldset>
+
+                <fieldset>
+                  <legend>Expertise</legend>
+                  <!-- <label for="expertise-rating-filter" class="property-dropdown-label">Strength:</label> -->
+                  <select name="expertise-filter" class="property-filter" id="expertise-rating-filter">
+                    <option class="property" id="Any">Any</option>
+                  </select>
+                  <!-- <label class="rating-dropdown-label">Rating:</label> -->
+                  <table>
+                    <tr>
+                      <td>Rating:</td>
+                      <td><input type="checkbox" name="expertise-filter" id="expertise-Any" value="Any" checked><label for="expertise-Any">Any</label></td>
+                      <td><input type="checkbox" name="expertise-filter" id="expertise-A" value="A" checked><label for="expertise-A">A</label></td>
+                      <td><input type="checkbox" name="expertise-filter" id="expertise-B" value="B" checked><label for="expertise-B">B</label></td>
+                      <td><input type="checkbox" name="expertise-filter" id="expertise-C" value="C" checked><label for="expertise-C">C</label></td>
+                      <td><input type="checkbox" name="expertise-filter" id="expertise-D" value="D" checked><label for="expertise-D">D</label></td>
+                      <td><input type="checkbox" name="expertise-filter" id="expertise-F" value="F" checked><label for="expertise-F">F</label></td>
+                    </tr>
+                  </table>
+                  <div class="button filter-button" id="expertise-filter-button"><span class="ui-icon ui-icon-plus"></span>Add filter</div>
+                </fieldset>
+
+                <fieldset>
+                  <legend>Associated opportunities</legend>
+                  <input type="text" name="opp-cust-name" id="consultant-assoc-opp-name-text" placeholder="Opportunity or customer name">
+                    <div class="button" id="consultant-assoc-opp-name-button"><span class="ui-icon ui-icon-search"></span></div>
+                  </input>
+                </fieldset>
+
+                <fieldset>
+                  <legend>Associated SAS partners</legend>
+                  <input type="text" name="partner-name" id="consultant-assoc-partner-name-text" placeholder="Partner name">
+                    <div class="button" id="consultant-assoc-partner-name-button"><span class="ui-icon ui-icon-search"></span></div>
+                  </input>
+                </fieldset>
+
+                <fieldset>
+                  <div>
+                    <input type="checkbox" name="show_rejected" id="show_rejected" value="show_rejected" checked><label for="show_rejected">Show rejected</label>
+                  </div>
+                </fieldset>
+
+              </form>
+            </div>
+
+            <!-- Opportunity filters -->
+
+            <h3>Opportunities</h3>
+            <div class="filter" id="opportunities">
+              <form>
+                <!-- Filters here: name search, properties, property ratings, associations -->
+                <div>
+                  <input type="text" name="opportunity-name" placeholder="Opportunity or customer name">
+                    <div class="button" id="opportunity-name-button"><span class="ui-icon ui-icon-search"></span></div>
+                  </input>
+                </div>
+
+                <fieldset>
+                  <legend>Status</legend>
+                  <table>
+                    <tr>
+                      <td><input type="checkbox" name="opp-status" id="opp-status-Open" value="Open" checked><label for="opp-status-Open">Open</label></td>
+                      <td><input type="checkbox" name="opp-status" id="opp-status-Filled" value="Filled" checked><label for="opp-status-Filled">Filled</label></td>
+                      <td><input type="checkbox" name="opp-status" id="opp-status-Closed" value="Closed" checked><label for="opp-status-Closed">Closed</label></td>
+                      <td><input type="checkbox" name="opp-status" id="opp-status-Any" value="Any" checked><label for="opp-status-Any">Any</label></td>
+                    </tr>
+                  </table>
+                </fieldset>
+
+                <fieldset>
+                  <legend>Date created</legend>
+                  <table>
+                    <tr>
+                      <td><label for="opp-created-from-date">from</label></td>
+                      <td><input type="date" name="opp-created" id="opp-created-from-date" min="1976-07-01" max="9999-12-31"></td>
+                    </tr>
+                    <tr>
+                      <td><label for="opp-created-to-date">to</label></td>
+                      <td><input type="date" name="opp-created" id="opp-created-to-date" min="1976-07-01" max="9999-12-31"></td>
+                    </tr>
+                  </table>
+                </fieldset>
+
+                <fieldset>
+                  <legend>Associated SAS partners</legend>
+                  <input type="text" name="partner-name" id="opp-assoc-partner-name-text" placeholder="Partner name">
+                    <div class="button" id="opp-assoc-partner-name-button"><span class="ui-icon ui-icon-search"></span></div>
+                  </input>
+                </fieldset>
+
+                <fieldset>
+                  <legend>Associated consultants</legend>
+                  <input type="text" name="consultant-name" id="opp-assoc-consultant-name-text" placeholder="Consultant name">
+                    <div class="button" id="opp-assoc-consultant-name-button"><span class="ui-icon ui-icon-search"></span></div>
+                  </input>
+                </fieldset>
+
+              </form>
+            </div>
+
+            <!-- Customer filters -->
+
+            <h3>Customers</h3>
+            <div class="filter" id="customers">
+              <form>
+                <!-- Filters here: name search, properties, property ratings, associations -->
+                <div>
+                  <input type="text" name="customer-name" placeholder="Customer name">
+                    <div class="button" id="customer-name-button"><span class="ui-icon ui-icon-search"></span></div>
+                  </input>
+                </div>
+
+                <fieldset>
+                  <legend>Industry</legend>
+                  <input type="checkbox" name="customer-industry" id="customer-industry-Any" value="Any" checked><label for="customer-industry-Any">Any</label>
+                </fieldset>
+
+                <fieldset>
+                  <legend>Region</legend>
+                  <input type="checkbox" name="customer-region" id="customer-region-Any" value="Any" checked><label for="customer-region-Any">Any</label>
+                </fieldset>
+
+                <fieldset>
+                  <legend>Associated SAS partners</legend>
+                  <input type="text" name="partner-name" id="customer-assoc-partner-name-text" placeholder="Partner name">
+                    <div class="button" id="customer-assoc-partner-name-button"><span class="ui-icon ui-icon-search"></span></div>
+                  </input>
+                </fieldset>
+
+                <fieldset>
+                  <legend>Associated consultants</legend>
+                  <input type="text" name="consultant-name" id="customer-assoc-consultant-name-text" placeholder="Consultant name">
+                    <div class="button" id="customer-assoc-consultant-name-button"><span class="ui-icon ui-icon-search"></span></div>
+                  </input>
+                </fieldset>
+
+              </form>
+            </div>
+
+          </div>
+
+          <!-- Results panel (header and list) -->
+
+          <div id="results-panel" class="wide">
+            <div id="results-header">
+              <div class="button" id="results-refresh-button"><span class="ui-icon ui-icon-refresh"></span> Refresh</div>
+              Found 0 matches.
+            </div>
+            <div id="results-list">
+              <p>Result item</p>
+            </div>
+          </div>
+
+      </div>
+
+      <div id="add">Add a resource</div>
+
+      <div id="admin">Admin tools and settings</div>
+
+    </div>
+
+  </div> <!-- container main -->
+
+  <div class="container right">
+  </div>
+  </div><div class="container bottom">
+    <div class="panel center"><div id="bottom-panel-filler">
+    </div><p>
+      SAS Global Professional Services &amp; Delivery | US Region Resource Management
+    </p></div>
+  </div>
+
 </body>
 </html>

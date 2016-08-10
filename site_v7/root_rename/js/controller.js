@@ -406,12 +406,15 @@ function PropertyRatingFilter(properties_lookup_set, ratings_lookup_set) {
   };
 }
 
-function AssociationFilter() {
+function AssociationFilter(junction_table) {
   // FIXME: Implement
+  this.junction_table = junction_table;
+  this.match_string = "";
 }
 
-function IndirectAssociationFilter() {
+function IndirectAssociationFilter(junction_table) {
   // FIXME: Implement
+  this.match_string = "";
 }
 
 function Model(callback) {
@@ -437,7 +440,7 @@ function Model(callback) {
   var foreign_keys = {};
 
   // Filters (FIXME: May move part of this to view?)
-  // {primary_tbl_id: { own: [colnames], junction}}
+  // { primary_tbl_id: Filter, primary_tbl_id: Filter, ... }
   var filters = {};
 
   /* Private initiation functions (can be used to "refresh" variables) */
@@ -450,7 +453,6 @@ function Model(callback) {
       for (var i = 0; i < rows.length; i += 1) {
         table_types.push(rows[i]["name"]);
       }
-
       if (typeof callback === "function") {
         callback();
       }
@@ -646,9 +648,11 @@ function Model(callback) {
     var iterations = tables["primary"].length;
     var index = 0;
 
+    // Execute callback only if calls to getLinkedTableIds have completed
     var tryCallback = function() {
       index += 1;
       if (index >= iterations) {
+        alert("Done loading filters. Executing callback..."); // FIXME: Remove
         callback();
       }
     };
@@ -657,67 +661,89 @@ function Model(callback) {
     // For each primary table, load filters according to adjacent junction tables
     for (var i = 0; i < primary_tables.length; i += 1) {
       var primary_table = primary_tables[i];
-      filters[primary_table.id] = {}; // Reserve spot for this table's filters
+      filters[primary_table.id] = []; // Reserve spot for this table's filters
       getLinkedTableIds(primary_table, function(primary_table, data) {
         alert(primary_table.name + "\nis linked to\n" + JSON.stringify(data, null, 4)); // FIXME: Remove
-        // Check table/junction type.
-        // primary, create name-match filter
-        // If primary-lookup, create CHECKBOX/ filters
-        // If primary-lookup-rating, create DROPDOWN filters
-        // If primary-primary, create SEARCH-DROPDOWN of
 
         // For each junction pointing to this primary table, create a filter and store it
         for (var i = 0; i < data.length; i += 1) {
+          alert("IN LoadFilters FOR LOOP, " + i + " of " + data.length); // FIXME: Remove
           var junction_id = data[i]["table_id"];
-          var junction_table = this.getTableById(junction_id);
+          alert("junction_id is " + junction_id); // FIXME: Remove
+          var junction_table = self.getTableById(junction_id);
+          alert("IN LoadFilters FOR LOOP II - " + junction_id); // FIXME: Remove
           var fkeys = foreign_keys[junction_id];
-
           var filter;
+          // This is for one primary table.
+          // This for statement is looping through its junction ids.
+          // Cases: The junction...
+          // refs lookups.
+          //   -> Create PropertyFilter from lookup set
+          // refs lookups and ratings.
+          //   -> Differentiate by fk's fk_column (lookup_id, rating_id)
+          //   -> create PropertyRatingFilter from lookup sets
+          // refs another primary.
+          //  -> Create AssociationFilter
+          // refs a junction.
+          //  -> Create IndirectAssociationFilter
+          // refs only THIS primary. <-- Special case
           if (junction_table.type === "primary_lookup_junction") {
+            alert("Create PropFilter for pri_lookup_junc table:\n" + primary_table.name + " -to- " +  JSON.stringify(junction_table, null, 4));
             // Instantiate a property filter
-            var property_table_id = fkeys[]
-            var properties_lookup_set = lookup_sets[]
+            //var property_table_id = fkeys[]
+            var properties_lookup_set;
+            for (var ref_id in fkeys) {
+              var fkey = fkeys[ref_id];
+              if (fkey.fk_column === "lookup_id") {
+                properties_lookup_set = lookup_sets[fkey.reference_table_id];
+                break;
+              }
+            }
             filter = new PropertyFilter(properties_lookup_set);
           } else if (junction_table.type === "ratings") {
+            alert("Create PropRatingFilter for ratings table:\n" + primary_table.name + " -to- " +  JSON.stringify(junction_table, null, 4));
             // instantiate a property rating filter
-            var properties_lookup_set = lookup_sets[]
-            var ratings_lookup_set = lookup_sets[]
+            var properties_lookup_set, ratings_lookup_set;
+            for (var ref_id in fkeys) {
+              var fkey = fkeys[ref_id];
+              if (fkey.fk_column === "lookup_id") {
+                properties_lookup_set = lookup_sets[fkey.reference_table_id];
+              } else if (fkey.fk_column === "rating_id") {
+                ratings_lookup_set = lookup_sets[fkey.reference_table]
+              }
+            }
             filter = new PropertyRatingFilter(properties_lookup_set, ratings_lookup_set);
           } else if (junction_table.type === "primary_primary_junction") {
             // instantiate an association filter
+
+            // for (var ref_id in fkeys) {
+            //   var fkey = fkeys[ref_id];
+            //   if (ref_id != primary_table.id) {
+            //     // Found the OTHER primary
+            //   }
+            // }
+            // filter = new AssociationFilter(junction_table);
+            alert("Create AssocFilter for primary_primary_junction table:\n" + primary_table.name + " -to- " +  JSON.stringify(junction_table, null, 4));
           } else if (junction_table.type === "primary_junction_junction") {
             // instantiate an indirect association filter
-          } else if {junction_table.type === "primary") {
+            // filter = new IndirectAssociationFilter();
+            alert("Create IndirectAssocFilter for primary_junction_junction table:\n" + primary_table.name + " -to- " +  JSON.stringify(junction_table, null, 4));
+          } else if (junction_table.type === "primary") {
             // instantiate an association filter (different from previous?)
+            // fitler = new AssociationFilter(junction_table);
+            alert("Create AssocFilter for primary ref'd table:\n" + primary_table.name + " -to- " +  JSON.stringify(junction_table, null, 4));
           } else {
             // Create no filter
+            filter = null;
+            alert("Error: Null filter object created.");
           }
+
           // Store filter
+          filters[primary_table.id].push(filter);
+          alert("Filters stored:\n" + JSON.stringify(filters, null, 4)); // FIXME: Remove
         }
-        // switch (table.type) {
-        //   case "primary_lookup_junction":
-        //
-        //     break;
-        //   case: "ratings":
-        //
-        //     break;
-        //   default:
-        //   break;
-        // }
         tryCallback();
       });
-      // getLinkedTableIds(table, function (data) {
-      //   alert("Displaying rows from outer function call:\n" + data);
-      //   if (table.type === "primary_lookup_junction") {
-      //
-      //   } else if (table.type === "ratings") {
-      //
-      //   } else if (table.type === "primary_primary_junction") {
-      //
-      //   } else {
-      //
-      //   }
-      // });
     }
   };
 
@@ -785,13 +811,18 @@ function Model(callback) {
 
   this.getAllTables = function() {
     var all_tables = [];
+    alert("All tables to be filled..."); // FIXME: Remove
     for (var key in tables) {
-      all_tables.push.apply(all_tables, tables[key]);
+      alert("Table type (key): " + key); // FIXME: Remove
+      Array.prototype.push.apply(all_tables, tables[key]);
+      alert("all_tables so far:\n" + all_tables.length + " tables");
     }
+    alert("All tables: " + JOSN.stringify(all_tables, null, 4)); // FIXME: Remove
     return all_tables;
   };
 
   this.getTableById = function(id) {
+    alert("In getTableById"); // FIXME: Remove
     var tables = this.getAllTables();
     for (var i = 0; i < tables.length; i += 1) {
       if (tables[i].id === id) {
